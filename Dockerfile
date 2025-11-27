@@ -3,17 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files first
-COPY package.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies fresh
-RUN npm install --legacy-peer-deps
+# Install dependencies
+RUN npm install
 
-# Copy all source files
+# Copy source code
 COPY . .
-
-# List files to debug
-RUN ls -la && ls -la src/ || echo "No src directory"
 
 # Build the app
 RUN npm run build
@@ -23,18 +20,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files for production dependencies
-COPY package.json ./
-RUN npm install --legacy-peer-deps --production
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.js ./server.js
+# Copy everything from builder
+COPY --from=builder /app ./
 
 # Expose port
 EXPOSE 8080
 
 ENV PORT=8080
 
-# Start with node server
-CMD ["node", "server.js"]
+# Start with vite preview
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "8080"]
