@@ -1,0 +1,520 @@
+# Update GlobalFactCheckToggle with better tooltip behavior
+cat > src/components/GlobalFactCheckToggle.tsx << 'ENDOFFILE'
+import React from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import { useGlobalFactCheck } from '@/contexts/GlobalFactCheckContext';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const GlobalFactCheckToggle: React.FC = () => {
+  const { isGlobalFactCheckEnabled, toggleGlobalFactCheck, warnings } = useGlobalFactCheck();
+  
+  const totalWarnings = warnings.reduce((sum, w) => sum + w.issueCount, 0);
+  const highSeverityCount = warnings.filter(w => w.severity === 'high').length;
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div 
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 transition-all cursor-pointer ${
+              isGlobalFactCheckEnabled 
+                ? 'bg-red-50 border-red-500 shadow-lg shadow-red-500/30' 
+                : 'bg-gray-50 border-gray-300 hover:border-gray-400'
+            }`}
+            onClick={toggleGlobalFactCheck}
+          >
+            {isGlobalFactCheckEnabled ? (
+              <ShieldCheck className="w-4 h-4 text-red-600" />
+            ) : (
+              <ShieldAlert className="w-4 h-4 text-gray-500" />
+            )}
+            
+            <span className={`font-semibold text-xs whitespace-nowrap ${
+              isGlobalFactCheckEnabled ? 'text-red-700' : 'text-gray-600'
+            }`}>
+              {isGlobalFactCheckEnabled ? 'ON' : 'OFF'}
+            </span>
+            
+            <Switch 
+              checked={isGlobalFactCheckEnabled}
+              onCheckedChange={toggleGlobalFactCheck}
+              className={`scale-75 ${
+                isGlobalFactCheckEnabled 
+                  ? 'data-[state=checked]:bg-red-600' 
+                  : ''
+              }`}
+            />
+            
+            <span className={`font-semibold text-xs ${
+              isGlobalFactCheckEnabled ? 'text-red-700' : 'text-gray-600'
+            }`}>
+              Fact Check
+            </span>
+            
+            {isGlobalFactCheckEnabled && totalWarnings > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="bg-yellow-500 text-yellow-900 hover:bg-yellow-600 font-bold text-xs px-1.5 py-0 h-5 min-w-5 flex items-center justify-center rounded-full ml-1"
+              >
+                {totalWarnings}
+              </Badge>
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent 
+          side="top" 
+          className="bg-white border-2 border-gray-200 shadow-xl z-[100]"
+          sideOffset={5}
+        >
+          <div className="text-sm max-w-xs">
+            {isGlobalFactCheckEnabled ? (
+              <>
+                <p className="font-bold text-red-600 mb-1">🛡️ Global Fact Check: ON</p>
+                <p className="text-xs text-gray-700">All content verified with Perplexity AI</p>
+                {totalWarnings > 0 && (
+                  <p className="text-xs text-amber-600 mt-2 font-semibold">
+                    ⚠️ {totalWarnings} issue{totalWarnings > 1 ? 's' : ''} found
+                    {highSeverityCount > 0 && ` (${highSeverityCount} high priority)`}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="font-bold text-gray-700 mb-1">Fact Check: OFF</p>
+                <p className="text-xs text-gray-600">Click to enable real-time verification</p>
+                <p className="text-xs text-gray-500 mt-1">Perfect for science & history content</p>
+              </>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+export default GlobalFactCheckToggle;
+ENDOFFILE
+# Update GlobalFactCheckContext with better toast behavior
+cat > src/contexts/GlobalFactCheckContext.tsx << 'ENDOFFILE'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
+
+interface FactCheckWarning {
+  blockId: string;
+  issueCount: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface GlobalFactCheckContextType {
+  isGlobalFactCheckEnabled: boolean;
+  toggleGlobalFactCheck: () => void;
+  warnings: FactCheckWarning[];
+  addWarning: (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => void;
+  clearWarning: (blockId: string) => void;
+  getWarningForBlock: (blockId: string) => FactCheckWarning | undefined;
+}
+
+const GlobalFactCheckContext = createContext<GlobalFactCheckContextType | undefined>(undefined);
+
+export const GlobalFactCheckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isGlobalFactCheckEnabled, setIsGlobalFactCheckEnabled] = useState(() => {
+    const saved = localStorage.getItem('globalFactCheckEnabled');
+    return saved === 'true';
+  });
+  const [warnings, setWarnings] = useState<FactCheckWarning[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('globalFactCheckEnabled', isGlobalFactCheckEnabled.toString());
+  }, [isGlobalFactCheckEnabled]);
+
+  const toggleGlobalFactCheck = () => {
+    setIsGlobalFactCheckEnabled(prev => {
+      const newValue = !prev;
+      if (newValue) {
+        toast.success('Global Fact Check enabled', {
+          description: 'Using Perplexity AI for verification',
+          duration: 2000,
+          position: 'top-right'
+        });
+      } else {
+        toast.info('Global Fact Check disabled', {
+          duration: 2000,
+          position: 'top-right'
+        });
+      }
+      return newValue;
+    });
+  };
+
+  const addWarning = (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => {
+    setWarnings(prev => {
+      const existing = prev.find(w => w.blockId === blockId);
+      if (existing) {
+        return prev.map(w => w.blockId === blockId ? { blockId, issueCount, severity } : w);
+      }
+      return [...prev, { blockId, issueCount, severity }];
+    });
+  };
+
+  const clearWarning = (blockId: string) => {
+    setWarnings(prev => prev.filter(w => w.blockId !== blockId));
+  };
+
+  const getWarningForBlock = (blockId: string) => {
+    return warnings.find(w => w.blockId === blockId);
+  };
+
+  return (
+    <GlobalFactCheckContext.Provider value={{
+      isGlobalFactCheckEnabled,
+      toggleGlobalFactCheck,
+      warnings,
+      addWarning,
+      clearWarning,
+      getWarningForBlock
+    }}>
+      {children}
+    </GlobalFactCheckContext.Provider>
+  );
+};
+
+export const useGlobalFactCheck = () => {
+  const context = useContext(GlobalFactCheckContext);
+  if (!context) {
+    throw new Error('useGlobalFactCheck must be used within GlobalFactCheckProvider');
+  }
+  return context;
+};
+ENDOFFILE
+# Update GlobalFactCheckContext to dismiss previous toasts
+cat > src/contexts/GlobalFactCheckContext.tsx << 'ENDOFFILE'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
+interface FactCheckWarning {
+  blockId: string;
+  issueCount: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface GlobalFactCheckContextType {
+  isGlobalFactCheckEnabled: boolean;
+  toggleGlobalFactCheck: () => void;
+  warnings: FactCheckWarning[];
+  addWarning: (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => void;
+  clearWarning: (blockId: string) => void;
+  getWarningForBlock: (blockId: string) => FactCheckWarning | undefined;
+}
+
+const GlobalFactCheckContext = createContext<GlobalFactCheckContextType | undefined>(undefined);
+
+export const GlobalFactCheckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isGlobalFactCheckEnabled, setIsGlobalFactCheckEnabled] = useState(() => {
+    const saved = localStorage.getItem('globalFactCheckEnabled');
+    return saved === 'true';
+  });
+  const [warnings, setWarnings] = useState<FactCheckWarning[]>([]);
+  const lastToastId = useRef<string | number | undefined>();
+
+  useEffect(() => {
+    localStorage.setItem('globalFactCheckEnabled', isGlobalFactCheckEnabled.toString());
+  }, [isGlobalFactCheckEnabled]);
+
+  const toggleGlobalFactCheck = () => {
+    setIsGlobalFactCheckEnabled(prev => {
+      const newValue = !prev;
+      
+      // Dismiss previous toast if it exists
+      if (lastToastId.current) {
+        toast.dismiss(lastToastId.current);
+      }
+      
+      // Show new toast
+      if (newValue) {
+        lastToastId.current = toast.success('Fact Check ON', {
+          duration: 1500,
+          position: 'top-center'
+        });
+      } else {
+        lastToastId.current = toast.info('Fact Check OFF', {
+          duration: 1500,
+          position: 'top-center'
+        });
+      }
+      
+      return newValue;
+    });
+  };
+
+  const addWarning = (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => {
+    setWarnings(prev => {
+      const existing = prev.find(w => w.blockId === blockId);
+      if (existing) {
+        return prev.map(w => w.blockId === blockId ? { blockId, issueCount, severity } : w);
+      }
+      return [...prev, { blockId, issueCount, severity }];
+    });
+  };
+
+  const clearWarning = (blockId: string) => {
+    setWarnings(prev => prev.filter(w => w.blockId !== blockId));
+  };
+
+  const getWarningForBlock = (blockId: string) => {
+    return warnings.find(w => w.blockId === blockId);
+  };
+
+  return (
+    <GlobalFactCheckContext.Provider value={{
+      isGlobalFactCheckEnabled,
+      toggleGlobalFactCheck,
+      warnings,
+      addWarning,
+      clearWarning,
+      getWarningForBlock
+    }}>
+      {children}
+    </GlobalFactCheckContext.Provider>
+  );
+};
+
+export const useGlobalFactCheck = () => {
+  const context = useContext(GlobalFactCheckContext);
+  if (!context) {
+    throw new Error('useGlobalFactCheck must be used within GlobalFactCheckProvider');
+  }
+  return context;
+};
+ENDOFFILE# Update GlobalFactCheckContext to remove all toasts
+cat > src/contexts/GlobalFactCheckContext.tsx << 'ENDOFFILE'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface FactCheckWarning {
+  blockId: string;
+  issueCount: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface GlobalFactCheckContextType {
+  isGlobalFactCheckEnabled: boolean;
+  toggleGlobalFactCheck: () => void;
+  warnings: FactCheckWarning[];
+  addWarning: (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => void;
+  clearWarning: (blockId: string) => void;
+  getWarningForBlock: (blockId: string) => FactCheckWarning | undefined;
+}
+
+const GlobalFactCheckContext = createContext<GlobalFactCheckContextType | undefined>(undefined);
+
+export const GlobalFactCheckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isGlobalFactCheckEnabled, setIsGlobalFactCheckEnabled] = useState(() => {
+    const saved = localStorage.getItem('globalFactCheckEnabled');
+    return saved === 'true';
+  });
+  const [warnings, setWarnings] = useState<FactCheckWarning[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('globalFactCheckEnabled', isGlobalFactCheckEnabled.toString());
+  }, [isGlobalFactCheckEnabled]);
+
+  const toggleGlobalFactCheck = () => {
+    setIsGlobalFactCheckEnabled(prev => !prev);
+  };
+
+  const addWarning = (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => {
+    setWarnings(prev => {
+      const existing = prev.find(w => w.blockId === blockId);
+      if (existing) {
+        return prev.map(w => w.blockId === blockId ? { blockId, issueCount, severity } : w);
+      }
+      return [...prev, { blockId, issueCount, severity }];
+    });
+  };
+
+  const clearWarning = (blockId: string) => {
+    setWarnings(prev => prev.filter(w => w.blockId !== blockId));
+  };
+
+  const getWarningForBlock = (blockId: string) => {
+    return warnings.find(w => w.blockId === blockId);
+  };
+
+  return (
+    <GlobalFactCheckContext.Provider value={{
+      isGlobalFactCheckEnabled,
+      toggleGlobalFactCheck,
+      warnings,
+      addWarning,
+      clearWarning,
+      getWarningForBlock
+    }}>
+      {children}
+    </GlobalFactCheckContext.Provider>
+  );
+};
+
+export const useGlobalFactCheck = () => {
+  const context = useContext(GlobalFactCheckContext);
+  if (!context) {
+    throw new Error('useGlobalFactCheck must be used within GlobalFactCheckProvider');
+  }
+  return context;
+};
+ENDOFFILE
+cat > src/contexts/GlobalFactCheckContext.tsx << 'ENDOFFILE'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface FactCheckWarning {
+  blockId: string;
+  issueCount: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface GlobalFactCheckContextType {
+  isGlobalFactCheckEnabled: boolean;
+  toggleGlobalFactCheck: () => void;
+  warnings: FactCheckWarning[];
+  addWarning: (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => void;
+  clearWarning: (blockId: string) => void;
+  getWarningForBlock: (blockId: string) => FactCheckWarning | undefined;
+}
+
+const GlobalFactCheckContext = createContext<GlobalFactCheckContextType | undefined>(undefined);
+
+export const GlobalFactCheckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isGlobalFactCheckEnabled, setIsGlobalFactCheckEnabled] = useState(() => {
+    const saved = localStorage.getItem('globalFactCheckEnabled');
+    return saved === 'true';
+  });
+  const [warnings, setWarnings] = useState<FactCheckWarning[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('globalFactCheckEnabled', isGlobalFactCheckEnabled.toString());
+  }, [isGlobalFactCheckEnabled]);
+
+  const toggleGlobalFactCheck = () => {
+    setIsGlobalFactCheckEnabled(prev => !prev);
+  };
+
+  const addWarning = (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => {
+    setWarnings(prev => {
+      const existing = prev.find(w => w.blockId === blockId);
+      if (existing) {
+        return prev.map(w => w.blockId === blockId ? { blockId, issueCount, severity } : w);
+      }
+      return [...prev, { blockId, issueCount, severity }];
+    });
+  };
+
+  const clearWarning = (blockId: string) => {
+    setWarnings(prev => prev.filter(w => w.blockId !== blockId));
+  };
+
+  const getWarningForBlock = (blockId: string) => {
+    return warnings.find(w => w.blockId === blockId);
+  };
+
+  return (
+    <GlobalFactCheckContext.Provider value={{
+      isGlobalFactCheckEnabled,
+      toggleGlobalFactCheck,
+      warnings,
+      addWarning,
+      clearWarning,
+      getWarningForBlock
+    }}>
+      {children}
+    </GlobalFactCheckContext.Provider>
+  );
+};
+
+export const useGlobalFactCheck = () => {
+  const context = useContext(GlobalFactCheckContext);
+  if (!context) {
+    throw new Error('useGlobalFactCheck must be used within GlobalFactCheckProvider');
+  }
+  return context;
+};
+ENDOFFILEcat src/contexts/GlobalFactCheckContext.tsx | head -5
+cat > src/contexts/GlobalFactCheckContext.tsx << 'ENDOFFILE'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface FactCheckWarning {
+  blockId: string;
+  issueCount: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface GlobalFactCheckContextType {
+  isGlobalFactCheckEnabled: boolean;
+  toggleGlobalFactCheck: () => void;
+  warnings: FactCheckWarning[];
+  addWarning: (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => void;
+  clearWarning: (blockId: string) => void;
+  getWarningForBlock: (blockId: string) => FactCheckWarning | undefined;
+}
+
+const GlobalFactCheckContext = createContext<GlobalFactCheckContextType | undefined>(undefined);
+
+export const GlobalFactCheckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isGlobalFactCheckEnabled, setIsGlobalFactCheckEnabled] = useState(() => {
+    const saved = localStorage.getItem('globalFactCheckEnabled');
+    return saved === 'true';
+  });
+  const [warnings, setWarnings] = useState<FactCheckWarning[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('globalFactCheckEnabled', isGlobalFactCheckEnabled.toString());
+  }, [isGlobalFactCheckEnabled]);
+
+  const toggleGlobalFactCheck = () => {
+    setIsGlobalFactCheckEnabled(prev => !prev);
+  };
+
+  const addWarning = (blockId: string, issueCount: number, severity: 'high' | 'medium' | 'low') => {
+    setWarnings(prev => {
+      const existing = prev.find(w => w.blockId === blockId);
+      if (existing) {
+        return prev.map(w => w.blockId === blockId ? { blockId, issueCount, severity } : w);
+      }
+      return [...prev, { blockId, issueCount, severity }];
+    });
+  };
+
+  const clearWarning = (blockId: string) => {
+    setWarnings(prev => prev.filter(w => w.blockId !== blockId));
+  };
+
+  const getWarningForBlock = (blockId: string) => {
+    return warnings.find(w => w.blockId === blockId);
+  };
+
+  return (
+    <GlobalFactCheckContext.Provider value={{
+      isGlobalFactCheckEnabled,
+      toggleGlobalFactCheck,
+      warnings,
+      addWarning,
+      clearWarning,
+      getWarningForBlock
+    }}>
+      {children}
+    </GlobalFactCheckContext.Provider>
+  );
+};
+
+export const useGlobalFactCheck = () => {
+  const context = useContext(GlobalFactCheckContext);
+  if (!context) {
+    throw new Error('useGlobalFactCheck must be used within GlobalFactCheckProvider');
+  }
+  return context;
+};
+ENDOFFILE

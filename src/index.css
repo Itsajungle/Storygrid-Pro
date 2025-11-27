@@ -1,13 +1,211 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Updated color scheme for It's a Jungle brand */
+    --background: 210 100% 15%; /* Starry Blue background */
+    --foreground: 60 100% 95%; /* Light yellow for text */
+
+    --card: 210 100% 18%;
+    --card-foreground: 60 100% 95%;
+
+    --popover: 210 100% 18%;
+    --popover-foreground: 60 100% 95%;
+
+    --primary: 51 100% 50%; /* Bold Yellow */
+    --primary-foreground: 210 100% 15%;
+
+    --secondary: 210 50% 25%;
+    --secondary-foreground: 60 100% 95%;
+
+    --muted: 210 50% 20%;
+    --muted-foreground: 60 20% 70%;
+
+    --accent: 340 100% 73%; /* Jungle Pink */
+    --accent-foreground: 210 100% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 50% 25%;
+    --input: 210 50% 25%;
+    --ring: 51 100% 50%; /* Bold Yellow ring */
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 210 100% 12%;
+    --sidebar-foreground: 60 100% 95%;
+    --sidebar-primary: 51 100% 50%;
+    --sidebar-primary-foreground: 210 100% 15%;
+    --sidebar-accent: 210 50% 20%;
+    --sidebar-accent-foreground: 60 100% 95%;
+    --sidebar-border: 210 50% 25%;
+    --sidebar-ring: 51 100% 50%;
+  }
+
+  .dark {
+    /* Dark mode keeps the same jungle theme but slightly adjusted */
+    --background: 210 100% 10%;
+    --foreground: 60 100% 98%;
+
+    --card: 210 100% 12%;
+    --card-foreground: 60 100% 98%;
+
+    --popover: 210 100% 12%;
+    --popover-foreground: 60 100% 98%;
+
+    --primary: 51 100% 50%;
+    --primary-foreground: 210 100% 10%;
+
+    --secondary: 210 50% 15%;
+    --secondary-foreground: 60 100% 98%;
+
+    --muted: 210 50% 15%;
+    --muted-foreground: 60 20% 75%;
+
+    --accent: 340 100% 73%;
+    --accent-foreground: 210 100% 10%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 50% 20%;
+    --input: 210 50% 20%;
+    --ring: 51 100% 50%;
+
+    --sidebar-background: 210 100% 8%;
+    --sidebar-foreground: 60 100% 98%;
+    --sidebar-primary: 51 100% 50%;
+    --sidebar-primary-foreground: 210 100% 8%;
+    --sidebar-accent: 210 50% 15%;
+    --sidebar-accent-foreground: 60 100% 98%;
+    --sidebar-border: 210 50% 20%;
+    --sidebar-ring: 51 100% 50%;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer base {
+  * {
+    /* @apply border-border; */
+  }
+
+  body {
+    font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+}
+
+@layer components {
+  .content-block {
+    @apply relative bg-white/95 backdrop-blur-sm rounded-lg border border-gray-400 p-4 transition-all duration-200 hover:border-gray-500 hover:shadow-md hover:bg-white cursor-move;
+    color: #1A1A1A;
+  }
+  
+  .content-block.dragging {
+    @apply opacity-60 transform rotate-1 scale-105 shadow-lg ring-2 ring-blue-500;
+  }
+  
+  .ai-chat-panel {
+  }
+  
+  .stage-nav-btn {
+    @apply px-6 py-3 rounded-full font-medium transition-all duration-200 hover:scale-105;
+  }
+  
+  .stage-nav-btn.active {
+  }
+  
+  .stage-nav-btn.inactive {
+  }
+
+  /* Refined timeline tab button styling */
+  .timeline-refined-tab {
+    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:scale-[1.01] border border-transparent;
+  }
+
+  /* Enhanced timeline tab button styling (legacy) */
+  .timeline-enhanced-tab {
+    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-[1.02] border border-transparent;
+  }
+
+  /* Timeline tab button styling (legacy) */
+  .timeline-tab-btn {
+  }
+
+  /* Jungle background */
+  .jungle-background {
+    background-image: url('/lovable-uploads/7e93b36c-d9e6-45a0-998e-cf46a139858e.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  /* Block shape styles */
+  .clip-path-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    padding-top: 1rem;
+  }
+  
+  .clip-path-hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+
+  /* Jungle-themed enhancements */
+  .jungle-glow {
+    @apply shadow-lg shadow-boldYellow/20;
+  }
+
+  .jungle-button {
+  }
+
+  .jungle-secondary-button {
+    @apply bg-junglePink text-white hover:bg-junglePink/90 font-semibold transition-all duration-200;
+  }
+
+  .jungle-success {
+    @apply bg-lushGreen text-white;
+  }
+
+  .jungle-info {
+  }
+
+  /* Standardized content block styling */
+  .sg-content-block {
+    @apply bg-white/95 backdrop-blur-sm border border-gray-400 rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-500;
+    color: #1A1A1A;
+  }
+
+  .sg-content-block:hover {
+    @apply bg-white;
+  }
+
+  .sg-content-block.dragging {
+    @apply ring-2 ring-blue-500 bg-white shadow-lg scale-105 rotate-1;
+  }
+
+  /* Standardized badge styling */
+  .sg-status-badge-planned {
+    @apply bg-blue-600 text-white border-blue-600;
+  }
+
+  .sg-status-badge-filmed {
+    @apply bg-amber-600 text-white border-amber-600;
+  }
+
+  .sg-status-badge-in-edit {
+    @apply bg-purple-600 text-white border-purple-600;
+  }
+
+  .sg-status-badge-approved {
+    @apply bg-green-600 text-white border-green-600;
+  }
+
+  .sg-status-badge-default {
+    @apply bg-gray-600 text-white border-gray-600;
+  }
 }

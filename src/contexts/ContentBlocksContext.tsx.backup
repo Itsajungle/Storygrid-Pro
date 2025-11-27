@@ -1,0 +1,450 @@
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+// Define the ContentBlock interface
+export interface ContentBlock {
+  id: string;
+  type: string;
+  title: string;
+  description?: string;
+  notes?: string;
+  status?: string;
+  duration?: number;
+  inStoryArc?: boolean;
+  aiSource?: 'chatgpt' | 'claude';
+  position?: number;
+  sequence?: number; // Added sequence property for episode ordering
+}
+
+// Define the ScriptBlock interface
+export interface ScriptBlock {
+  id: string;
+  contentBlockId: string;
+  where: string;
+  ears: string;
+  eyes: string;
+  status: string;
+  title?: string;
+  version?: string;
+}
+
+// Define new timeline-related interfaces
+export interface TimelineItem {
+  id: string;
+  contentBlockId: string;
+  date: string; // ISO date string
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  locationId: string;
+  status: 'planned' | 'confirmed' | 'in-review' | 'completed';
+  notes?: string;
+  crewIds: string[]; // References to assigned crew members
+  equipmentIds: string[]; // References to required equipment
+}
+
+export interface CrewMember {
+  id: string;
+  name: string;
+  role: 'host' | 'guest' | 'camera' | 'sound' | 'producer' | 'director' | 'editor' | 'other';
+  contact?: string; // Email or phone
+  notes?: string;
+  availability?: {
+    date: string;
+    available: boolean;
+  }[];
+}
+
+export interface Equipment {
+  id: string;
+  name: string;
+  category: 'camera' | 'lens' | 'audio' | 'lighting' | 'misc';
+  quantity: number;
+  isPacked: boolean;
+  barcode?: string;
+  notes?: string;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  address?: string;
+  mapLink?: string;
+  contactName?: string;
+  contactInfo?: string;
+  constraints?: string;
+  notes?: string;
+}
+
+// Define the ContentBlocksContextType
+interface ContentBlocksContextType {
+  contentBlocks: ContentBlock[];
+  scriptBlocks: ScriptBlock[];
+  timelineItems: TimelineItem[];
+  crewMembers: CrewMember[];
+  equipmentList: Equipment[];
+  locations: Location[];
+  
+  // Content block methods
+  addContentBlock: (block: Omit<ContentBlock, 'id'>) => void;
+  updateContentBlock: (id: string, updates: Partial<ContentBlock>) => void;
+  removeContentBlock: (id: string) => void;
+  reorderContentBlocks: (blocks: ContentBlock[]) => void;
+  updateContentBlockOrder: (blockId: string, newSequence: number) => void; // New dedicated reorder function
+  
+  // Script block methods
+  addScriptBlock: (block: Omit<ScriptBlock, 'id'>) => void;
+  updateScriptBlock: (id: string, updates: Partial<ScriptBlock>) => void;
+  removeScriptBlock: (id: string) => void;
+  
+  // Timeline methods
+  addTimelineItem: (item: Omit<TimelineItem, 'id'>) => void;
+  updateTimelineItem: (id: string, updates: Partial<TimelineItem>) => void;
+  removeTimelineItem: (id: string) => void;
+  
+  // Crew methods
+  addCrewMember: (member: Omit<CrewMember, 'id'>) => void;
+  updateCrewMember: (id: string, updates: Partial<CrewMember>) => void;
+  removeCrewMember: (id: string) => void;
+  
+  // Equipment methods
+  addEquipment: (item: Omit<Equipment, 'id'>) => void;
+  updateEquipment: (id: string, updates: Partial<Equipment>) => void;
+  removeEquipment: (id: string) => void;
+  
+  // Location methods
+  addLocation: (location: Omit<Location, 'id'>) => void;
+  updateLocation: (id: string, updates: Partial<Location>) => void;
+  removeLocation: (id: string) => void;
+}
+
+// Create the context
+const ContentBlocksContext = createContext<ContentBlocksContextType | undefined>(undefined);
+
+// Context Provider component
+export const ContentBlocksProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([
+    {
+      id: '1',
+      type: 'interview',
+      title: 'Nutritionist Interview',
+      description: 'Expert discussing plant proteins and nutrition myths',
+      status: 'draft',
+      duration: 5,
+      inStoryArc: true,
+      sequence: 0
+    },
+    {
+      id: '2',
+      type: 'b-roll',
+      title: 'Various Plant Proteins',
+      description: 'Cinematic shots of beans, lentils, quinoa, tempeh',
+      status: 'needs-review',
+      duration: 2,
+      inStoryArc: true,
+      sequence: 1
+    }
+  ]);
+
+  const [scriptBlocks, setScriptBlocks] = useState<ScriptBlock[]>([
+    {
+      id: 'script-1',
+      contentBlockId: '1',
+      where: 'Studio interview setup with neutral backdrop',
+      ears: 'Q: What are the most common misconceptions about plant proteins?\nA: Many people believe plant proteins are incomplete...',
+      eyes: 'CAM 1: Medium shot of host and nutritionist\nB-ROLL: Show various protein-rich plants during responses',
+      status: 'draft',
+      title: 'Nutritionist Interview',
+      version: '1.0'
+    }
+  ]);
+  
+  // Initialize new state variables for timeline
+  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([
+    {
+      id: 'timeline-1',
+      contentBlockId: '1',
+      date: '2025-06-05',
+      startTime: '09:00',
+      endTime: '14:00',
+      locationId: 'location-1',
+      status: 'planned',
+      crewIds: ['crew-1', 'crew-2', 'crew-3'],
+      equipmentIds: ['equip-1', 'equip-2', 'equip-3']
+    }
+  ]);
+  
+  const [crewMembers, setCrewMembers] = useState<CrewMember[]>([
+    {
+      id: 'crew-1',
+      name: 'Susan Rodriguez',
+      role: 'host',
+      contact: 'susan@itsjungle.com'
+    },
+    {
+      id: 'crew-2',
+      name: 'Mike Chen',
+      role: 'camera',
+      contact: 'mike@itsjungle.com'
+    },
+    {
+      id: 'crew-3',
+      name: 'Dr. Amara Singh',
+      role: 'guest',
+      contact: 'drsing@nutrition.org',
+      notes: 'Nutritionist specializing in plant proteins'
+    }
+  ]);
+  
+  const [equipmentList, setEquipmentList] = useState<Equipment[]>([
+    {
+      id: 'equip-1',
+      name: 'Sony FX6',
+      category: 'camera',
+      quantity: 1,
+      isPacked: false
+    },
+    {
+      id: 'equip-2',
+      name: 'Sennheiser Lav Mic',
+      category: 'audio',
+      quantity: 2,
+      isPacked: false
+    },
+    {
+      id: 'equip-3',
+      name: 'LED Panel Kit',
+      category: 'lighting',
+      quantity: 3,
+      isPacked: false
+    }
+  ]);
+  
+  const [locations, setLocations] = useState<Location[]>([
+    {
+      id: 'location-1',
+      name: 'Studio A',
+      address: '123 Production Way, Suite 4B',
+      contactName: 'Building Manager',
+      contactInfo: '555-1234',
+      notes: 'Parking in rear, code for door: 5523#'
+    }
+  ]);
+
+  // Content block methods
+  const addContentBlock = (block: Omit<ContentBlock, 'id'>) => {
+    const newBlock = { ...block, id: uuidv4() };
+    setContentBlocks(prev => [...prev, newBlock]);
+  };
+
+  const updateContentBlock = (id: string, updates: Partial<ContentBlock>) => {
+    console.log('Updating content block:', id, 'with updates:', updates);
+    setContentBlocks(prev => 
+      prev.map(block => {
+        if (block.id === id) {
+          const updatedBlock = { ...block, ...updates };
+          // Ensure sequence is a number
+          if (updates.sequence !== undefined) {
+            updatedBlock.sequence = typeof updates.sequence === 'number' ? updates.sequence : parseInt(String(updates.sequence)) || 0;
+          }
+          console.log('Updated block:', updatedBlock);
+          return updatedBlock;
+        }
+        return block;
+      })
+    );
+  };
+
+  const removeContentBlock = (id: string) => {
+    setContentBlocks(prev => prev.filter(block => block.id !== id));
+  };
+
+  // Add bulk reorder method for efficient drag-and-drop
+  const reorderContentBlocks = (blocks: ContentBlock[]) => {
+    console.log('Reordering blocks:', blocks.map(b => ({ id: b.id, sequence: b.sequence })));
+    setContentBlocks(blocks);
+  };
+
+  // Enhanced function for updating block order with proper sequence management
+  const updateContentBlockOrder = (blockId: string, newSequence: number) => {
+    console.log('UPDATING BLOCK ORDER:', blockId, 'to sequence:', newSequence);
+    
+    setContentBlocks(prev => {
+      // Find the block being moved
+      const blockToMove = prev.find(b => b.id === blockId);
+      if (!blockToMove) {
+        console.log('Block not found:', blockId);
+        return prev;
+      }
+
+      const currentSequence = typeof blockToMove.sequence === 'number' ? blockToMove.sequence : 0;
+      
+      // If sequence hasn't changed, no update needed
+      if (currentSequence === newSequence) {
+        console.log('Sequence unchanged, skipping update');
+        return prev;
+      }
+
+      // Create new array with updated sequences
+      const updatedBlocks = prev.map(block => {
+        if (block.id === blockId) {
+          // Update the moved block's sequence
+          console.log(`Setting block ${blockId} sequence to ${newSequence}`);
+          return { ...block, sequence: newSequence };
+        }
+        
+        // Adjust other blocks' sequences based on the move
+        const blockSequence = typeof block.sequence === 'number' ? block.sequence : 0;
+        
+        if (currentSequence < newSequence) {
+          // Moving down: shift blocks up that are between old and new position
+          if (blockSequence > currentSequence && blockSequence <= newSequence) {
+            const newSeq = blockSequence - 1;
+            console.log(`Shifting block ${block.id} from ${blockSequence} to ${newSeq}`);
+            return { ...block, sequence: newSeq };
+          }
+        } else {
+          // Moving up: shift blocks down that are between new and old position
+          if (blockSequence >= newSequence && blockSequence < currentSequence) {
+            const newSeq = blockSequence + 1;
+            console.log(`Shifting block ${block.id} from ${blockSequence} to ${newSeq}`);
+            return { ...block, sequence: newSeq };
+          }
+        }
+        
+        return block;
+      });
+      
+      console.log('Updated blocks after reorder:', updatedBlocks
+        .filter(b => b.inStoryArc)
+        .sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
+        .map(b => ({ id: b.id, title: b.title, sequence: b.sequence }))
+      );
+      
+      return updatedBlocks;
+    });
+  };
+
+  // Script block methods
+  const addScriptBlock = (block: Omit<ScriptBlock, 'id'>) => {
+    const newBlock = { ...block, id: uuidv4() };
+    setScriptBlocks(prev => [...prev, newBlock]);
+  };
+
+  const updateScriptBlock = (id: string, updates: Partial<ScriptBlock>) => {
+    setScriptBlocks(prev => 
+      prev.map(block => (block.id === id ? { ...block, ...updates } : block))
+    );
+  };
+
+  const removeScriptBlock = (id: string) => {
+    setScriptBlocks(prev => prev.filter(block => block.id !== id));
+  };
+  
+  // Timeline item methods
+  const addTimelineItem = (item: Omit<TimelineItem, 'id'>) => {
+    const newItem = { ...item, id: uuidv4() };
+    setTimelineItems(prev => [...prev, newItem]);
+  };
+
+  const updateTimelineItem = (id: string, updates: Partial<TimelineItem>) => {
+    setTimelineItems(prev => 
+      prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  const removeTimelineItem = (id: string) => {
+    setTimelineItems(prev => prev.filter(item => item.id !== id));
+  };
+  
+  // Crew member methods
+  const addCrewMember = (member: Omit<CrewMember, 'id'>) => {
+    const newMember = { ...member, id: uuidv4() };
+    setCrewMembers(prev => [...prev, newMember]);
+  };
+
+  const updateCrewMember = (id: string, updates: Partial<CrewMember>) => {
+    setCrewMembers(prev => 
+      prev.map(member => (member.id === id ? { ...member, ...updates } : member))
+    );
+  };
+
+  const removeCrewMember = (id: string) => {
+    setCrewMembers(prev => prev.filter(member => member.id !== id));
+  };
+  
+  // Equipment methods
+  const addEquipment = (item: Omit<Equipment, 'id'>) => {
+    const newItem = { ...item, id: uuidv4() };
+    setEquipmentList(prev => [...prev, newItem]);
+  };
+
+  const updateEquipment = (id: string, updates: Partial<Equipment>) => {
+    setEquipmentList(prev => 
+      prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  const removeEquipment = (id: string) => {
+    setEquipmentList(prev => prev.filter(item => item.id !== id));
+  };
+  
+  // Location methods
+  const addLocation = (location: Omit<Location, 'id'>) => {
+    const newLocation = { ...location, id: uuidv4() };
+    setLocations(prev => [...prev, newLocation]);
+  };
+
+  const updateLocation = (id: string, updates: Partial<Location>) => {
+    setLocations(prev => 
+      prev.map(location => (location.id === id ? { ...location, ...updates } : location))
+    );
+  };
+
+  const removeLocation = (id: string) => {
+    setLocations(prev => prev.filter(location => location.id !== id));
+  };
+
+  return (
+    <ContentBlocksContext.Provider 
+      value={{ 
+        contentBlocks, 
+        scriptBlocks, 
+        timelineItems,
+        crewMembers,
+        equipmentList,
+        locations,
+        addContentBlock, 
+        updateContentBlock, 
+        removeContentBlock,
+        reorderContentBlocks,
+        updateContentBlockOrder,
+        addScriptBlock,
+        updateScriptBlock,
+        removeScriptBlock,
+        addTimelineItem,
+        updateTimelineItem,
+        removeTimelineItem,
+        addCrewMember,
+        updateCrewMember,
+        removeCrewMember,
+        addEquipment,
+        updateEquipment,
+        removeEquipment,
+        addLocation,
+        updateLocation,
+        removeLocation
+      }}
+    >
+      {children}
+    </ContentBlocksContext.Provider>
+  );
+};
+
+// Custom hook for accessing the context
+export const useContentBlocks = () => {
+  const context = useContext(ContentBlocksContext);
+  if (context === undefined) {
+    throw new Error('useContentBlocks must be used within a ContentBlocksProvider');
+  }
+  return context;
+};
