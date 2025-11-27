@@ -3,14 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install --legacy-peer-deps --force
-
-# Copy source code
+# Copy everything first
 COPY . .
+
+# Remove any existing node_modules and lock files
+RUN rm -rf node_modules package-lock.json
+
+# Install dependencies fresh
+RUN npm install --legacy-peer-deps
 
 # Build the app
 RUN npm run build
