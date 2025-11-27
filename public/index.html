@@ -4,40 +4,195 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="description" content="It's a Jungle Content Hub - AI-powered social media automation" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    <title>It's a Jungle - Content Hub</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+      }
+      .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+      .header {
+        text-align: center;
+        padding: 40px 20px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        margin-bottom: 40px;
+      }
+      .header h1 { font-size: 3em; margin-bottom: 10px; }
+      .header p { font-size: 1.2em; opacity: 0.9; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+      .card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 30px;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s;
+        border: 2px solid rgba(255,255,255,0.1);
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
+      }
+      .card-icon { font-size: 3em; margin-bottom: 15px; }
+      .card-title { font-size: 1.5em; font-weight: bold; margin-bottom: 10px; }
+      .card-desc { opacity: 0.9; line-height: 1.5; }
+      .footer {
+        text-align: center;
+        padding: 20px;
+        opacity: 0.7;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.active { display: flex; }
+      .modal-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      }
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 30px;
+        cursor: pointer;
+        color: white;
+        background: rgba(255,255,255,0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+      }
+      .modal-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+      }
+      .modal h2 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+      .modal p {
+        font-size: 1.2em;
+        line-height: 1.6;
+        margin-bottom: 15px;
+      }
+      .modal ul {
+        text-align: left;
+        margin: 20px 0;
+        padding-left: 20px;
+      }
+      .modal li {
+        margin: 10px 0;
+        font-size: 1.1em;
+      }
+    </style>
   </head>
   <body>
+    <div class="container">
+      <div class="header">
+        <div style="font-size: 4em; margin-bottom: 20px;">🌴</div>
+        <h1>It's a Jungle</h1>
+        <p>Content Hub - AI-Powered Social Media Automation</p>
+      </div>
+
+      <div class="grid">
+        <!-- Row 1 -->
+        <a href="https://web-production-29982.up.railway.app/dashboard" class="card" target="_blank">
+          <div class="card-icon">🤖</div>
+          <div class="card-title">IAJ Social Media</div>
+          <div class="card-desc">Complete AI-powered social media automation system. Generate, approve, and publish content.</div>
+        </a>
+
+        <a href="https://web-production-29982.up.railway.app/api/social-studio/dashboard" class="card" target="_blank">
+          <div class="card-icon">🎨</div>
+          <div class="card-title">Social Studio</div>
+          <div class="card-desc">AI content generation with GPT-4 and DALL-E. Create beautiful posts with IAJ's tropical style.</div>
+        </a>
+
+        <a href="https://web-production-29982.up.railway.app/api/social-studio/batch" class="card" target="_blank">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Batch Studio</div>
+          <div class="card-desc">Generate 7 posts at once with AI topic suggestions. Perfect for weekly content planning.</div>
+        </a>
+
+        <!-- Row 2 -->
+        <a href="https://app.metricool.com" class="card" target="_blank">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Analytics</div>
+          <div class="card-desc">Track performance across all platforms. Views, engagement, and top performing content.</div>
+        </a>
+
+        <a href="https://storygrid-pro-production.up.railway.app" class="card" target="_blank">
+          <div class="card-icon">📝</div>
+          <div class="card-title">Story Grid Pro</div>
+          <div class="card-desc">Content planning and strategy tools. Plan your content calendar and story arcs.</div>
+        </a>
+
+        <a href="https://itsajungle.tv" class="card" target="_blank">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">Main Website</div>
+          <div class="card-desc">Visit the It's a Jungle website for episodes, show information, and more.</div>
+        </a>
+
+        <!-- Row 3 -->
+        <a href="https://youtube.com/@ItsAJungle" class="card" target="_blank">
+          <div class="card-icon">📺</div>
+          <div class="card-title">YouTube Channel</div>
+          <div class="card-desc">Watch full episodes and clips on the It's a Jungle YouTube channel.</div>
+        </a>
+
+        <a href="https://its-a-jungle-3.myshopify.com" class="card" target="_blank">
+          <div class="card-icon">🛍️</div>
+          <div class="card-title">Shopify Store</div>
+          <div class="card-desc">Shop It's a Jungle merchandise, wellness products, and exclusive content.</div>
+        </a>
+
+        <a href="https://github.com/Itsajungle/IAJ-Social-Media" class="card" target="_blank">
+          <div class="card-icon">💻</div>
+          <div class="card-title">GitHub</div>
+          <div class="card-desc">View the source code and documentation for the IAJ Social Media system.</div>
+        </a>
+      </div>
+
+      <div class="footer">
+        <p>🌴 It's a Jungle Content Hub • Built with ❤️ • 2025</p>
+        <p style="margin-top: 10px; font-size: 0.9em;">AI-powered social media automation for wellness content creators</p>
+      </div>
+    </div>
+
+    
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
