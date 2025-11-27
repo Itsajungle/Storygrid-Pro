@@ -9,6 +9,15 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  preview: {
+    host: "0.0.0.0",
+    port: 8080,
+    allowedHosts: [
+      "storygridpro.com",
+      "storygrid-pro-production.up.railway.app",
+      "localhost"
+    ]
+  },
   plugins: [
     react(),
     mode === 'development' &&
