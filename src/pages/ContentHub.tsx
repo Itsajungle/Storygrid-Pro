@@ -20,10 +20,10 @@ const ContentHub = () => {
       external: true
     },
     {
-      title: 'Make/Vizard Studio',
-      description: 'AI-powered video processing with Vizard. Create clips from YouTube videos and automate workflows.',
+      title: 'Video Processor',
+      description: 'Process YouTube videos with Vizard AI. Check latest videos and manage video processing workflows.',
       icon: '🎬',
-      link: 'https://web-production-29982.up.railway.app/api/video-processor',
+      link: 'https://web-production-29982.up.railway.app/api/video-processor/youtube/feed',
       external: true
     },
     {
