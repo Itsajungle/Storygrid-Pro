@@ -23,7 +23,7 @@ const ContentHub = () => {
       title: 'Video Processor',
       description: 'Process YouTube videos with Vizard AI. Check latest videos and manage video processing workflows.',
       icon: '🎬',
-      link: 'https://web-production-29982.up.railway.app/api/video-processor/youtube/feed',
+      link: 'https://web-production-29982.up.railway.app/api/video-processor/dashboard',
       external: true
     },
     {
