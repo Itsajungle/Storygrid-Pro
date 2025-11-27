@@ -22,15 +22,15 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ContentHub />} />
             <Route
-              path="/app"
+              path="/"
               element={
                 <ProtectedRoute>
-                  <StoryGridApp />
+                  <ContentHub />
                 </ProtectedRoute>
               }
             />
+            <Route path="/app" element={<StoryGridApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
