@@ -13,6 +13,20 @@ const ContentHub = () => {
       external: true
     },
     {
+      title: 'AI Agent Training',
+      description: 'Train and configure AI agents for content analysis, research, and strategy optimization.',
+      icon: '��',
+      link: 'https://web-production-29982.up.railway.app/api/agent-training',
+      external: true
+    },
+    {
+      title: 'Make/Vizard Studio',
+      description: 'AI-powered video processing with Vizard. Create clips from YouTube videos and automate workflows.',
+      icon: '🎬',
+      link: 'https://web-production-29982.up.railway.app/api/video-processor',
+      external: true
+    },
+    {
       title: 'Social Studio',
       description: 'AI content generation with GPT-4 and DALL-E. Create beautiful posts with IAJ\'s tropical style.',
       icon: '🎨',
