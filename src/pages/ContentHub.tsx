@@ -15,8 +15,15 @@ const ContentHub = () => {
     {
       title: 'AI Agent Training',
       description: 'Train and configure AI agents for content analysis, research, and strategy optimization.',
-      icon: '��',
+      icon: '🧠',
       link: 'https://web-production-29982.up.railway.app/api/agent-training',
+      external: true
+    },
+    {
+      title: 'Video Processor',
+      description: 'Process YouTube videos with Vizard AI. Create clips and manage video processing workflows.',
+      icon: '🎬',
+      link: 'https://web-production-29982.up.railway.app/api/video-dashboard',
       external: true
     },
     {
