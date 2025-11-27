@@ -20,6 +20,13 @@ const ContentHub = () => {
       external: true
     },
     {
+      title: 'Video Processor',
+      description: 'Process YouTube videos with Vizard AI. View latest videos and check processing status.',
+      icon: '🎬',
+      link: 'https://web-production-29982.up.railway.app/api/video-processor/youtube/feed',
+      external: true
+    },
+    {
       title: 'Social Studio',
       description: 'AI content generation with GPT-4 and DALL-E. Create beautiful posts with IAJ\'s tropical style.',
       icon: '🎨',
