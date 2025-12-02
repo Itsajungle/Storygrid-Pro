@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import SystemHealthMonitor from '@/components/SystemHealthMonitor';
 
 const ContentHub = () => {
   const navigate = useNavigate();
@@ -101,6 +102,9 @@ const ContentHub = () => {
           <h1 className="text-5xl font-bold text-white mb-4">It's a Jungle</h1>
           <p className="text-xl text-white/90">Content Hub - AI-Powered Social Media Automation</p>
         </div>
+
+        {/* System Health Monitor */}
+        <SystemHealthMonitor />
 
         {/* App Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
