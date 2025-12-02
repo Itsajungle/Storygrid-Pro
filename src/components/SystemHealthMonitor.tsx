@@ -1,7 +1,7 @@
 /**
- * System Health Monitor for Story Grid Pro Content Hub
- * Apple-inspired design with blue/silver glassmorphism
- * Sophisticated, minimal, professional aesthetic
+ * System Health Monitor - Apple-Inspired Light Glassmorphism
+ * Clean, minimal design with frosted glass cards on light background
+ * Inspired by macOS Big Sur, iOS Control Center, Apple Health
  */
 
 import React, { useState, useEffect } from 'react';
@@ -20,9 +20,6 @@ import {
   Check,
   X,
   TrendingUp,
-  Server,
-  Cpu,
-  Radio,
   HelpCircle
 } from 'lucide-react';
 
@@ -113,7 +110,7 @@ const SystemHealthMonitor: React.FC = () => {
         showToast('Analysis complete');
         await fetchRecommendations();
       } else {
-        showToast('No new insights found');
+        showToast('No new insights');
       }
     } catch (err) {
       showToast('Analysis failed');
@@ -181,75 +178,50 @@ const SystemHealthMonitor: React.FC = () => {
   };
 
   const getStatusIcon = (status: string) => {
-    const iconClass = "w-5 h-5";
+    const size = "w-5 h-5";
     switch (status) {
-      case 'healthy': return <CheckCircle2 className={`${iconClass} text-emerald-400`} />;
-      case 'unhealthy': return <AlertTriangle className={`${iconClass} text-amber-400`} />;
-      case 'timeout': return <Clock className={`${iconClass} text-orange-400`} />;
-      case 'error': return <XCircle className={`${iconClass} text-red-400`} />;
-      default: return <HelpCircle className={`${iconClass} text-slate-400`} />;
+      case 'healthy': return <CheckCircle2 className={`${size} text-[#34C759]`} />;
+      case 'unhealthy': return <AlertTriangle className={`${size} text-[#FF9500]`} />;
+      case 'timeout': return <Clock className={`${size} text-[#FF9500]`} />;
+      case 'error': return <XCircle className={`${size} text-[#FF3B30]`} />;
+      default: return <HelpCircle className={`${size} text-[#8E8E93]`} />;
     }
   };
 
-  const getStatusBg = (status: string): string => {
+  const getStatusColor = (status: string): string => {
     switch (status) {
-      case 'healthy': return 'bg-emerald-500/10 border-emerald-500/20';
-      case 'unhealthy': return 'bg-amber-500/10 border-amber-500/20';
+      case 'healthy': return 'text-[#34C759]';
+      case 'unhealthy': return 'text-[#FF9500]';
       case 'timeout':
-      case 'error': return 'bg-red-500/10 border-red-500/20';
-      default: return 'bg-slate-500/10 border-slate-500/20';
-    }
-  };
-
-  const getStatusText = (status: string): string => {
-    switch (status) {
-      case 'healthy': return 'text-emerald-400';
-      case 'unhealthy': return 'text-amber-400';
-      case 'timeout':
-      case 'error': return 'text-red-400';
-      default: return 'text-slate-400';
+      case 'error': return 'text-[#FF3B30]';
+      default: return 'text-[#8E8E93]';
     }
   };
 
   const getPriorityConfig = (priority: string) => {
-    const configs: Record<string, { icon: React.ReactNode; bg: string; text: string; label: string; border: string }> = {
+    const configs: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
       critical: { 
-        icon: <AlertOctagon className="w-5 h-5" />, 
-        bg: 'bg-red-500/10', 
-        text: 'text-red-400', 
-        label: 'Critical',
-        border: 'border-red-500/20'
+        icon: <AlertOctagon className="w-4 h-4" />, 
+        color: 'text-[#FF3B30]',
+        label: 'Critical'
       },
       high: { 
-        icon: <Zap className="w-5 h-5" />, 
-        bg: 'bg-orange-500/10', 
-        text: 'text-orange-400', 
-        label: 'High',
-        border: 'border-orange-500/20'
+        icon: <Zap className="w-4 h-4" />, 
+        color: 'text-[#FF9500]',
+        label: 'High'
       },
       medium: { 
-        icon: <Lightbulb className="w-5 h-5" />, 
-        bg: 'bg-blue-500/10', 
-        text: 'text-blue-400', 
-        label: 'Medium',
-        border: 'border-blue-500/20'
+        icon: <Lightbulb className="w-4 h-4" />, 
+        color: 'text-[#007AFF]',
+        label: 'Medium'
       },
       low: { 
-        icon: <FileText className="w-5 h-5" />, 
-        bg: 'bg-slate-500/10', 
-        text: 'text-slate-400', 
-        label: 'Low',
-        border: 'border-slate-500/20'
+        icon: <FileText className="w-4 h-4" />, 
+        color: 'text-[#8E8E93]',
+        label: 'Low'
       }
     };
     return configs[priority] || configs.medium;
-  };
-
-  const getSystemIcon = (key: string) => {
-    const iconClass = "w-4 h-4 text-slate-400";
-    if (key.includes('social') || key.includes('studio')) return <Radio className={iconClass} />;
-    if (key.includes('video') || key.includes('processor')) return <Cpu className={iconClass} />;
-    return <Server className={iconClass} />;
   };
 
   const getOperationalCount = (): { healthy: number; total: number } => {
@@ -274,7 +246,7 @@ const SystemHealthMonitor: React.FC = () => {
       priority: 'high',
       type: 'optimization',
       title: 'Optimize posting schedule',
-      description: 'Analysis suggests shifting to peak engagement hours could improve reach.',
+      description: 'Analysis suggests shifting to peak engagement hours could improve reach significantly.',
       impact: '+40% engagement'
     },
     {
@@ -288,21 +260,23 @@ const SystemHealthMonitor: React.FC = () => {
   ];
 
   // ============================================
+  // GLASS CARD STYLES
+  // ============================================
+  
+  const glassCard = "bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/50 shadow-[0_4px_30px_rgba(0,0,0,0.08)] rounded-3xl";
+  const glassCardInner = "bg-white/50 backdrop-blur-md border border-white/60 shadow-[0_2px_15px_rgba(0,0,0,0.04)] rounded-2xl";
+
+  // ============================================
   // RENDER
   // ============================================
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden rounded-3xl mb-8">
-        {/* Glass background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl" />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5" />
-        <div className="absolute inset-[1px] rounded-3xl border border-white/10" />
-        
-        <div className="relative p-8">
-          <div className="flex items-center justify-center py-12">
-            <RefreshCw className="w-6 h-6 text-blue-400 animate-spin mr-3" />
-            <span className="text-slate-400 font-medium">Loading system health...</span>
+      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
+        <div className={`${glassCard} p-8`}>
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="w-5 h-5 text-[#007AFF] animate-spin mr-3" />
+            <span className="text-[#1D1D1F] font-medium">Loading system health...</span>
           </div>
         </div>
       </div>
@@ -311,26 +285,21 @@ const SystemHealthMonitor: React.FC = () => {
 
   if (error) {
     return (
-      <div className="relative overflow-hidden rounded-3xl mb-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl" />
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-orange-500/5" />
-        <div className="absolute inset-[1px] rounded-3xl border border-red-500/20" />
-        
-        <div className="relative p-8">
+      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
+        <div className={`${glassCard} p-8`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20">
-                <AlertTriangle className="w-6 h-6 text-red-400" />
+              <div className="p-3 rounded-2xl bg-[#FF3B30]/10">
+                <AlertTriangle className="w-6 h-6 text-[#FF3B30]" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Connection Error</h3>
-                <p className="text-slate-400 text-sm mt-0.5">Unable to reach Management Hub</p>
-                <p className="text-red-400/70 text-xs mt-1 font-mono">{error}</p>
+                <h3 className="text-lg font-semibold text-[#1D1D1F]">Connection Error</h3>
+                <p className="text-[#86868B] text-sm mt-0.5">Unable to reach Management Hub</p>
               </div>
             </div>
             <button
               onClick={() => { fetchHealthData(); fetchRecommendations(); }}
-              className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white rounded-xl transition-all duration-300 flex items-center gap-2 text-sm font-medium"
+              className="px-5 py-2.5 bg-[#007AFF] hover:bg-[#0056CC] text-white rounded-full transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm"
             >
               <RefreshCw className="w-4 h-4" />
               Retry
@@ -350,204 +319,197 @@ const SystemHealthMonitor: React.FC = () => {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50">
-          <div className="bg-slate-800/90 backdrop-blur-xl border border-white/10 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="bg-[#1D1D1F] text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#34C759]" />
             <span className="text-sm font-medium">{toast}</span>
           </div>
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-3xl mb-8">
-        {/* Multi-layer glass background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl" />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent" />
-        <div className="absolute inset-[1px] rounded-3xl border border-white/[0.08]" />
+      {/* Main Container - Light Background */}
+      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
         
-        {/* Content */}
-        <div className="relative p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/20">
-                <Activity className="w-6 h-6 text-blue-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-                  System Health
-                </h2>
-                <p className="text-slate-400 text-sm mt-0.5">Real-time infrastructure monitoring</p>
-              </div>
-            </div>
+        {/* Main Glass Card */}
+        <div className={glassCard}>
+          <div className="p-8">
             
-            {/* Status Badge */}
-            <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl ${isAllHealthy ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
-              {isAllHealthy ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-              )}
-              <div className="text-right">
-                <div className={`text-2xl font-semibold tracking-tight ${isAllHealthy ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  {healthy}/{total}
-                </div>
-                <p className="text-slate-500 text-xs">operational</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Systems Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-            {healthData && Object.entries(healthData.systems).map(([key, system]) => (
-              <div
-                key={key}
-                className={`group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 border ${getStatusBg(system.status)} hover:scale-[1.02] cursor-default`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-3 p-2 rounded-xl bg-white/5">
-                    {getStatusIcon(system.status)}
-                  </div>
-                  <p className="text-white font-medium text-sm truncate w-full">{system.name}</p>
-                  <p className={`text-xs mt-1.5 font-mono ${getStatusText(system.status)}`}>
-                    {system.status === 'healthy' && system.response_time_ms
-                      ? `${Math.round(system.response_time_ms)}ms`
-                      : system.status}
-                  </p>
-                </div>
-                
-                {/* Subtle shine effect on hover */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </div>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
-
-          {/* AI Recommendations Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/20">
-                  <Sparkles className="w-5 h-5 text-violet-400" />
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#007AFF]/20 to-[#5AC8FA]/20">
+                  <Activity className="w-6 h-6 text-[#007AFF]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">AI Insights</h3>
-                  <p className="text-slate-500 text-xs">{displayRecs.length} active recommendations</p>
+                  <h2 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">
+                    System Health
+                  </h2>
+                  <p className="text-[#86868B] text-sm mt-0.5">Real-time infrastructure monitoring</p>
+                </div>
+              </div>
+              
+              {/* Status Badge */}
+              <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl ${isAllHealthy ? 'bg-[#34C759]/10' : 'bg-[#FF9500]/10'}`}>
+                {isAllHealthy ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#34C759]" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-[#FF9500]" />
+                )}
+                <div className="text-right">
+                  <div className={`text-2xl font-semibold tracking-tight ${isAllHealthy ? 'text-[#34C759]' : 'text-[#FF9500]'}`}>
+                    {healthy}/{total}
+                  </div>
+                  <p className="text-[#86868B] text-xs">operational</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Systems Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+              {healthData && Object.entries(healthData.systems).map(([key, system]) => (
+                <div
+                  key={key}
+                  className={`${glassCardInner} p-4 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.02] cursor-default`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-3">
+                      {getStatusIcon(system.status)}
+                    </div>
+                    <p className="text-[#1D1D1F] font-medium text-sm truncate w-full">{system.name}</p>
+                    <p className={`text-xs mt-1 font-medium ${getStatusColor(system.status)}`}>
+                      {system.status === 'healthy' && system.response_time_ms
+                        ? `${Math.round(system.response_time_ms)}ms`
+                        : system.status}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-gradient-to-r from-transparent via-[#D1D1D6] to-transparent my-8" />
+
+            {/* AI Recommendations Section */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#5856D6]/20 to-[#AF52DE]/20">
+                    <Sparkles className="w-5 h-5 text-[#5856D6]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#1D1D1F]">AI Insights</h3>
+                    <p className="text-[#86868B] text-xs">{displayRecs.length} recommendations</p>
+                  </div>
+                </div>
+                <button
+                  onClick={generateRecommendations}
+                  disabled={generating}
+                  className="px-5 py-2.5 bg-[#007AFF] hover:bg-[#0056CC] disabled:bg-[#007AFF]/50 text-white rounded-full transition-all duration-200 text-sm font-medium flex items-center gap-2 shadow-sm disabled:cursor-not-allowed"
+                >
+                  {generating ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Generate Insights</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Recommendations List */}
+              <div className="space-y-3">
+                {displayRecs.map((rec) => {
+                  const config = getPriorityConfig(rec.priority);
+                  return (
+                    <div
+                      key={rec.id}
+                      className={`${glassCardInner} p-5 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className={`p-2 rounded-xl bg-[#F5F5F7] ${config.color}`}>
+                            {config.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold ${config.color}`}>
+                                {config.label}
+                              </span>
+                              {rec.type && (
+                                <span className="text-xs text-[#86868B]">• {rec.type}</span>
+                              )}
+                            </div>
+                            <h4 className="font-semibold text-[#1D1D1F] text-sm">{rec.title}</h4>
+                            <p className="text-[#86868B] text-sm mt-1 leading-relaxed">{rec.description}</p>
+                            {rec.impact && (
+                              <div className="flex items-center gap-1.5 mt-2 text-xs text-[#86868B]">
+                                <TrendingUp className="w-3.5 h-3.5 text-[#34C759]" />
+                                <span>Expected: <span className="text-[#1D1D1F] font-medium">{rec.impact}</span></span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => markRecommendationDone(rec.id)}
+                            className="p-2.5 bg-[#34C759]/10 hover:bg-[#34C759]/20 text-[#34C759] rounded-xl transition-all duration-200"
+                            title="Mark as done"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => dismissRecommendation(rec.id)}
+                            className="p-2.5 bg-[#F5F5F7] hover:bg-[#E5E5EA] text-[#86868B] rounded-xl transition-all duration-200"
+                            title="Dismiss"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#D1D1D6]/50">
+              <div className="flex items-center gap-6 text-xs text-[#86868B]">
+                <div className="flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Auto-refresh 30s</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Updated {formatLastUpdate()}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Powered by Claude</span>
                 </div>
               </div>
               <button
-                onClick={generateRecommendations}
-                disabled={generating}
-                className="px-4 py-2.5 bg-gradient-to-r from-violet-500/20 to-purple-500/20 hover:from-violet-500/30 hover:to-purple-500/30 border border-violet-500/20 hover:border-violet-500/30 text-white rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => { fetchHealthData(); fetchRecommendations(); }}
+                className="px-4 py-2 bg-[#F5F5F7] hover:bg-[#E5E5EA] text-[#1D1D1F] rounded-full transition-all duration-200 text-xs font-medium flex items-center gap-2"
               >
-                {generating ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Analyzing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Generate Insights</span>
-                  </>
-                )}
+                <RefreshCw className="w-3.5 h-3.5" />
+                Refresh
               </button>
             </div>
-
-            {/* Recommendations List */}
-            <div className="space-y-3">
-              {displayRecs.map((rec) => {
-                const config = getPriorityConfig(rec.priority);
-                return (
-                  <div
-                    key={rec.id}
-                    className={`group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.01] ${config.bg} ${config.border}`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className={`p-2.5 rounded-xl ${config.bg} border ${config.border}`}>
-                          <span className={config.text}>{config.icon}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${config.bg} ${config.text} border ${config.border}`}>
-                              {config.label}
-                            </span>
-                            {rec.type && (
-                              <span className="text-xs text-slate-500 font-medium">{rec.type}</span>
-                            )}
-                          </div>
-                          <h4 className="font-semibold text-white text-sm">{rec.title}</h4>
-                          <p className="text-slate-400 text-sm mt-1.5 leading-relaxed">{rec.description}</p>
-                          {rec.impact && (
-                            <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
-                              <TrendingUp className="w-3.5 h-3.5" />
-                              <span>Expected: <span className="text-slate-300 font-medium">{rec.impact}</span></span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => markRecommendationDone(rec.id)}
-                          className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/30 text-emerald-400 rounded-xl transition-all duration-300"
-                          title="Mark as done"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => dismissRecommendation(rec.id)}
-                          className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-400 rounded-xl transition-all duration-300"
-                          title="Dismiss"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Subtle shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/[0.06]">
-            <div className="flex items-center gap-6 text-xs text-slate-500">
-              <div className="flex items-center gap-1.5">
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Auto-refresh: 30s</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Updated {formatLastUpdate()}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Powered by Claude</span>
-              </div>
-            </div>
-            <button
-              onClick={() => { fetchHealthData(); fetchRecommendations(); }}
-              className="px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-400 hover:text-white rounded-xl transition-all duration-300 text-xs font-medium flex items-center gap-2"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Refresh
-            </button>
           </div>
         </div>
-      </div>
 
-      {/* Branding - Subtle "It's a Jungle" */}
-      <div className="text-center mb-8">
-        <p className="text-slate-600 text-sm font-medium tracking-wide" style={{ fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-          <span className="text-blue-400/60">It's a Jungle</span>
-          <span className="mx-2 text-slate-700">•</span>
-          <span>Infrastructure Monitor</span>
-        </p>
+        {/* Branding */}
+        <div className="text-center mt-6">
+          <p className="text-[#86868B] text-sm">
+            <span className="text-[#007AFF] font-medium">It's a Jungle</span>
+            <span className="mx-2">•</span>
+            <span>Infrastructure Monitor</span>
+          </p>
+        </div>
       </div>
     </>
   );
