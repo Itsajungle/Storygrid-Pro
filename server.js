@@ -9,6 +9,15 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Health check endpoint
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'operational',
+    service: 'Story Grid Pro',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Serve static files from dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
