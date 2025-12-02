@@ -20,13 +20,18 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy everything from builder
-COPY --from=builder /app ./
+# Copy built files and server
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server.js ./
+COPY --from=builder /app/package*.json ./
+
+# Install only production dependencies
+RUN npm install --omit=dev
 
 # Expose port
 EXPOSE 8080
 
 ENV PORT=8080
 
-# Start with vite preview
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "8080"]
+# Start with Express server (NOT vite preview)
+CMD ["node", "server.js"]
