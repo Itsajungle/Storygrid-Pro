@@ -20,18 +20,20 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy package files first
+COPY package*.json ./
+
+# Install only express (the only runtime dependency needed for server.js)
+RUN npm install express
+
 # Copy built files and server
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.js ./
-COPY --from=builder /app/package*.json ./
-
-# Install only production dependencies
-RUN npm install --omit=dev
 
 # Expose port
 EXPOSE 8080
 
 ENV PORT=8080
 
-# Start with Express server (NOT vite preview)
+# Start with Express server
 CMD ["node", "server.js"]
