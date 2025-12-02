@@ -20,20 +20,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files first
-COPY package*.json ./
-
-# Install only express (the only runtime dependency needed for server.js)
+# Install only express
 RUN npm install express
 
 # Copy built files and server
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.js ./
+COPY --from=builder /app/server.cjs ./
 
 # Expose port
 EXPOSE 8080
 
 ENV PORT=8080
 
-# Start with Express server
-CMD ["node", "server.js"]
+# Start with CommonJS server (no ES modules needed)
+CMD ["node", "server.cjs"]
