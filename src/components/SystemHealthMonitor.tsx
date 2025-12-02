@@ -1,7 +1,6 @@
 /**
- * System Health Monitor - Apple Glassmorphism Design
- * Frosted glass cards floating over gradient background
- * Blue/silver palette only
+ * System Health Monitor - Apple Glassmorphism + It's a Jungle Branding
+ * Frosted glass cards, blue/silver only, NO purple
  */
 
 import React, { useState, useEffect } from 'react';
@@ -16,7 +15,8 @@ import {
   Check,
   X,
   ArrowUpRight,
-  Minus
+  Minus,
+  Palmtree
 } from 'lucide-react';
 
 // ============================================
@@ -54,40 +54,40 @@ interface RecommendationsResponse {
 }
 
 // ============================================
-// STYLES
+// STYLES - Blue/Silver Only, NO Purple
 // ============================================
 
 const styles = {
-  // Gradient background to show glass blur effect
+  // Light blue gradient background (NO purple)
   gradientBg: {
-    background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 25%, #e0e7ff 50%, #c7d2fe 75%, #ddd6fe 100%)',
+    background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%)',
   },
   
   // Main glass card
   glassCard: {
-    background: 'rgba(255, 255, 255, 0.7)',
+    background: 'rgba(255, 255, 255, 0.75)',
     backdropFilter: 'blur(20px) saturate(180%)',
     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
   },
   
-  // Inner glass cards (systems, recommendations)
+  // Inner glass cards
   glassCardInner: {
-    background: 'rgba(255, 255, 255, 0.5)',
+    background: 'rgba(255, 255, 255, 0.6)',
     backdropFilter: 'blur(10px) saturate(150%)',
     WebkitBackdropFilter: 'blur(10px) saturate(150%)',
-    border: '1px solid rgba(255, 255, 255, 0.4)',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
   },
   
   // Glass button
   glassButton: {
-    background: 'rgba(255, 255, 255, 0.6)',
+    background: 'rgba(255, 255, 255, 0.7)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.4)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
   },
   
   // Blue glass button
@@ -95,15 +95,13 @@ const styles = {
     background: 'rgba(0, 122, 255, 0.9)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 4px 20px rgba(0, 122, 255, 0.3)',
+    border: '1px solid rgba(0, 122, 255, 0.3)',
+    boxShadow: '0 4px 20px rgba(0, 122, 255, 0.25)',
   },
   
-  // Icon container glass
+  // Icon container
   glassIcon: {
-    background: 'rgba(0, 122, 255, 0.1)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
+    background: 'rgba(0, 122, 255, 0.08)',
     border: '1px solid rgba(0, 122, 255, 0.1)',
   },
 };
@@ -331,30 +329,52 @@ const SystemHealthMonitor: React.FC = () => {
         <div className="rounded-[24px]" style={styles.glassCard}>
           <div className="p-8">
             
-            {/* Header */}
+            {/* Header with It's a Jungle Branding */}
             <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={styles.glassIcon}>
-                  <Activity className="w-7 h-7" style={{ color: '#007AFF' }} />
+              <div className="flex items-center gap-5">
+                {/* It's a Jungle Branding */}
+                <div className="flex items-center gap-2">
+                  <Palmtree className="w-7 h-7" style={{ color: '#007AFF' }} />
+                  <span 
+                    className="text-xl tracking-tight"
+                    style={{ 
+                      color: '#007AFF',
+                      fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive",
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    It's a Jungle
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#1D1D1F' }}>
-                    System Health
-                  </h2>
-                  <p className="text-sm mt-0.5" style={{ color: '#6B7280' }}>
-                    Real-time monitoring
-                  </p>
+                
+                {/* Divider */}
+                <div className="w-px h-8 bg-gray-200" />
+                
+                {/* System Health Title */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={styles.glassIcon}>
+                    <Activity className="w-5 h-5" style={{ color: '#007AFF' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold tracking-tight" style={{ color: '#1D1D1F' }}>
+                      System Health
+                    </h2>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>
+                      Real-time monitoring
+                    </p>
+                  </div>
                 </div>
               </div>
               
               {/* Status Badge */}
               <div 
-                className="flex items-center gap-3 px-6 py-4 rounded-2xl"
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl"
                 style={styles.glassCardInner}
               >
-                <CircleDot className="w-6 h-6" style={{ color: '#007AFF' }} />
+                <CircleDot className="w-5 h-5" style={{ color: '#007AFF' }} />
                 <div className="text-right">
-                  <div className="text-3xl font-semibold" style={{ color: '#007AFF' }}>
+                  <div className="text-2xl font-semibold" style={{ color: '#007AFF' }}>
                     {healthy}/{total}
                   </div>
                   <p className="text-xs font-medium" style={{ color: '#6B7280' }}>operational</p>
@@ -363,26 +383,26 @@ const SystemHealthMonitor: React.FC = () => {
             </div>
 
             {/* Systems Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
               {healthData && Object.entries(healthData.systems).map(([key, system]) => (
                 <div
                   key={key}
-                  className="rounded-2xl p-5 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg cursor-default"
+                  className="rounded-2xl p-4 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg cursor-default"
                   style={styles.glassCardInner}
                 >
                   <div className="flex flex-col items-center text-center">
-                    <div className="mb-3">
+                    <div className="mb-2">
                       {system.status === 'healthy' ? (
-                        <Circle className="w-6 h-6" style={{ color: '#007AFF', fill: '#007AFF' }} />
+                        <Circle className="w-5 h-5" style={{ color: '#007AFF', fill: '#007AFF' }} />
                       ) : (
-                        <Circle className="w-6 h-6" style={{ color: '#9CA3AF' }} />
+                        <Circle className="w-5 h-5" style={{ color: '#9CA3AF' }} />
                       )}
                     </div>
-                    <p className="font-semibold text-sm truncate w-full" style={{ color: '#1D1D1F' }}>
+                    <p className="font-semibold text-xs truncate w-full" style={{ color: '#1D1D1F' }}>
                       {system.name}
                     </p>
                     <p 
-                      className="text-xs mt-1.5 font-medium" 
+                      className="text-xs mt-1 font-medium" 
                       style={{ color: system.status === 'healthy' ? '#007AFF' : '#9CA3AF' }}
                     >
                       {system.status === 'healthy' && system.response_time_ms
@@ -396,26 +416,26 @@ const SystemHealthMonitor: React.FC = () => {
 
             {/* Divider */}
             <div 
-              className="h-px my-8" 
-              style={{ background: 'linear-gradient(to right, transparent, rgba(0, 122, 255, 0.2), transparent)' }} 
+              className="h-px my-6" 
+              style={{ background: 'linear-gradient(to right, transparent, rgba(0, 122, 255, 0.15), transparent)' }} 
             />
 
             {/* AI Insights */}
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={styles.glassIcon}>
-                    <Sparkles className="w-6 h-6" style={{ color: '#007AFF' }} />
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={styles.glassIcon}>
+                    <Sparkles className="w-5 h-5" style={{ color: '#007AFF' }} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold" style={{ color: '#1D1D1F' }}>AI Insights</h3>
-                    <p className="text-sm" style={{ color: '#6B7280' }}>{displayRecs.length} recommendations</p>
+                    <h3 className="text-lg font-semibold" style={{ color: '#1D1D1F' }}>AI Insights</h3>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>{displayRecs.length} recommendations</p>
                   </div>
                 </div>
                 <button
                   onClick={generateRecommendations}
                   disabled={generating}
-                  className="px-6 py-3 rounded-full text-sm font-semibold text-white transition-all hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 flex items-center gap-2"
                   style={styles.glassButtonBlue}
                 >
                   {generating ? (
@@ -433,25 +453,25 @@ const SystemHealthMonitor: React.FC = () => {
               </div>
 
               {/* Recommendations */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {displayRecs.map((rec) => (
                   <div
                     key={rec.id}
-                    className="rounded-2xl p-6 transition-all duration-300 hover:shadow-lg"
+                    className="rounded-2xl p-5 transition-all duration-300 hover:shadow-lg"
                     style={styles.glassCardInner}
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1">
+                      <div className="flex items-start gap-3 flex-1">
                         <div 
-                          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={styles.glassIcon}
                         >
                           <ChevronRight className="w-5 h-5" style={{ color: '#007AFF' }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-1.5">
                             <span 
-                              className="text-xs font-semibold px-3 py-1 rounded-full"
+                              className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
                               style={{ 
                                 background: 'rgba(0, 122, 255, 0.1)',
                                 color: '#007AFF'
@@ -465,12 +485,12 @@ const SystemHealthMonitor: React.FC = () => {
                               </span>
                             )}
                           </div>
-                          <h4 className="font-semibold" style={{ color: '#1D1D1F' }}>{rec.title}</h4>
-                          <p className="text-sm mt-2 leading-relaxed" style={{ color: '#6B7280' }}>{rec.description}</p>
+                          <h4 className="font-semibold text-sm" style={{ color: '#1D1D1F' }}>{rec.title}</h4>
+                          <p className="text-sm mt-1.5 leading-relaxed" style={{ color: '#6B7280' }}>{rec.description}</p>
                           {rec.impact && (
-                            <div className="flex items-center gap-2 mt-3">
-                              <ArrowUpRight className="w-4 h-4" style={{ color: '#007AFF' }} />
-                              <span className="text-sm" style={{ color: '#6B7280' }}>
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <ArrowUpRight className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+                              <span className="text-xs" style={{ color: '#6B7280' }}>
                                 Expected: <span style={{ color: '#007AFF' }} className="font-semibold">{rec.impact}</span>
                               </span>
                             </div>
@@ -480,22 +500,22 @@ const SystemHealthMonitor: React.FC = () => {
                       <div className="flex gap-2 flex-shrink-0">
                         <button
                           onClick={() => markRecommendationDone(rec.id)}
-                          className="w-11 h-11 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                           style={{
                             ...styles.glassButton,
                             background: 'rgba(0, 122, 255, 0.1)',
                           }}
                           title="Done"
                         >
-                          <Check className="w-5 h-5" style={{ color: '#007AFF' }} />
+                          <Check className="w-4 h-4" style={{ color: '#007AFF' }} />
                         </button>
                         <button
                           onClick={() => dismissRecommendation(rec.id)}
-                          className="w-11 h-11 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                           style={styles.glassButton}
                           title="Dismiss"
                         >
-                          <X className="w-5 h-5" style={{ color: '#9CA3AF' }} />
+                          <X className="w-4 h-4" style={{ color: '#9CA3AF' }} />
                         </button>
                       </div>
                     </div>
@@ -506,40 +526,38 @@ const SystemHealthMonitor: React.FC = () => {
 
             {/* Footer */}
             <div 
-              className="flex items-center justify-between mt-8 pt-6" 
-              style={{ borderTop: '1px solid rgba(0, 122, 255, 0.1)' }}
+              className="flex items-center justify-between mt-6 pt-5" 
+              style={{ borderTop: '1px solid rgba(0, 122, 255, 0.08)' }}
             >
-              <div className="flex items-center gap-6 text-sm" style={{ color: '#9CA3AF' }}>
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4" />
+              <div className="flex items-center gap-5 text-xs" style={{ color: '#9CA3AF' }}>
+                <div className="flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
                   <span>Auto-refresh 30s</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>Updated {formatLastUpdate()}</span>
                 </div>
               </div>
               <button
                 onClick={() => { fetchHealthData(); fetchRecommendations(); }}
-                className="px-5 py-2.5 rounded-full text-sm font-medium transition-all hover:scale-105 flex items-center gap-2"
+                className="px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 flex items-center gap-1.5"
                 style={{
                   ...styles.glassButton,
                   color: '#1D1D1F',
                 }}
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 Refresh
               </button>
             </div>
           </div>
         </div>
 
-        {/* Branding */}
-        <div className="text-center mt-6">
-          <p className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            <span style={{ color: '#007AFF' }}>It's a Jungle</span>
-            <span className="mx-2" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>·</span>
-            <span>Infrastructure Monitor</span>
+        {/* Footer Branding */}
+        <div className="text-center mt-5">
+          <p className="text-sm" style={{ color: 'rgba(0, 122, 255, 0.6)' }}>
+            Infrastructure Monitor
           </p>
         </div>
       </div>
