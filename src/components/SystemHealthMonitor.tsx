@@ -1,5 +1,5 @@
 /**
- * System Health Monitor - Apple Glassmorphism + It's a Jungle Branding
+ * System Health Monitor - Apple Glassmorphism + IAJ Logo
  * Frosted glass cards, blue/silver only, NO purple
  */
 
@@ -15,9 +15,11 @@ import {
   Check,
   X,
   ArrowUpRight,
-  Minus,
-  Palmtree
+  Minus
 } from 'lucide-react';
+
+// Import IAJ Logo
+import logo from '/Assets/IAJ Orange White copy.png';
 
 // ============================================
 // TYPES
@@ -58,7 +60,7 @@ interface RecommendationsResponse {
 // ============================================
 
 const styles = {
-  // Light blue gradient background (NO purple)
+  // Light blue gradient background only
   gradientBg: {
     background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%)',
   },
@@ -103,6 +105,13 @@ const styles = {
   glassIcon: {
     background: 'rgba(0, 122, 255, 0.08)',
     border: '1px solid rgba(0, 122, 255, 0.1)',
+  },
+  
+  // Logo filter: orange to blue
+  logoFilter: {
+    filter: 'hue-rotate(190deg) saturate(0.8) brightness(1.1)',
+    height: '40px',
+    width: 'auto',
   },
 };
 
@@ -329,27 +338,18 @@ const SystemHealthMonitor: React.FC = () => {
         <div className="rounded-[24px]" style={styles.glassCard}>
           <div className="p-8">
             
-            {/* Header with It's a Jungle Branding */}
+            {/* Header with IAJ Logo */}
             <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-5">
-                {/* It's a Jungle Branding */}
-                <div className="flex items-center gap-2">
-                  <Palmtree className="w-7 h-7" style={{ color: '#007AFF' }} />
-                  <span 
-                    className="text-xl tracking-tight"
-                    style={{ 
-                      color: '#007AFF',
-                      fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive",
-                      fontWeight: 700,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    It's a Jungle
-                  </span>
-                </div>
+              <div className="flex items-center gap-6">
+                {/* IAJ Logo - filtered to blue */}
+                <img 
+                  src={logo} 
+                  alt="It's a Jungle" 
+                  style={styles.logoFilter}
+                />
                 
                 {/* Divider */}
-                <div className="w-px h-8 bg-gray-200" />
+                <div className="w-px h-10" style={{ background: 'rgba(0, 122, 255, 0.15)' }} />
                 
                 {/* System Health Title */}
                 <div className="flex items-center gap-3">
@@ -552,13 +552,6 @@ const SystemHealthMonitor: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Footer Branding */}
-        <div className="text-center mt-5">
-          <p className="text-sm" style={{ color: 'rgba(0, 122, 255, 0.6)' }}>
-            Infrastructure Monitor
-          </p>
         </div>
       </div>
     </>
