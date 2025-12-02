@@ -1,26 +1,22 @@
 /**
- * System Health Monitor - Apple-Inspired Light Glassmorphism
- * Clean, minimal design with frosted glass cards on light background
- * Inspired by macOS Big Sur, iOS Control Center, Apple Health
+ * System Health Monitor - Apple-Inspired Design
+ * Light background, blue/silver only, no colorful elements
+ * Inspired by Apple Health, macOS Big Sur, iOS
  */
 
 import React, { useState, useEffect } from 'react';
 import {
   Activity,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
+  Circle,
+  CircleDot,
   Clock,
   RefreshCw,
   Sparkles,
-  Lightbulb,
-  Zap,
-  AlertOctagon,
-  FileText,
+  ChevronRight,
   Check,
   X,
-  TrendingUp,
-  HelpCircle
+  ArrowUpRight,
+  Minus
 } from 'lucide-react';
 
 // ============================================
@@ -85,7 +81,7 @@ const SystemHealthMonitor: React.FC = () => {
       setError(null);
       setLastUpdate(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch health data');
+      setError(err instanceof Error ? err.message : 'Failed to fetch');
     } finally {
       setLoading(false);
     }
@@ -128,10 +124,10 @@ const SystemHealthMonitor: React.FC = () => {
       });
       if (response.ok) {
         setRecommendations(prev => prev.filter(r => r.id !== id));
-        showToast('Marked complete');
+        showToast('Done');
       }
     } catch (err) {
-      showToast('Update failed');
+      showToast('Failed');
     }
   };
 
@@ -147,13 +143,9 @@ const SystemHealthMonitor: React.FC = () => {
         showToast('Dismissed');
       }
     } catch (err) {
-      showToast('Dismiss failed');
+      showToast('Failed');
     }
   };
-
-  // ============================================
-  // EFFECTS
-  // ============================================
 
   useEffect(() => {
     fetchHealthData();
@@ -168,60 +160,9 @@ const SystemHealthMonitor: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // ============================================
-  // HELPERS
-  // ============================================
-
   const showToast = (message: string) => {
     setToast(message);
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const getStatusIcon = (status: string) => {
-    const size = "w-5 h-5";
-    switch (status) {
-      case 'healthy': return <CheckCircle2 className={`${size} text-[#34C759]`} />;
-      case 'unhealthy': return <AlertTriangle className={`${size} text-[#FF9500]`} />;
-      case 'timeout': return <Clock className={`${size} text-[#FF9500]`} />;
-      case 'error': return <XCircle className={`${size} text-[#FF3B30]`} />;
-      default: return <HelpCircle className={`${size} text-[#8E8E93]`} />;
-    }
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'healthy': return 'text-[#34C759]';
-      case 'unhealthy': return 'text-[#FF9500]';
-      case 'timeout':
-      case 'error': return 'text-[#FF3B30]';
-      default: return 'text-[#8E8E93]';
-    }
-  };
-
-  const getPriorityConfig = (priority: string) => {
-    const configs: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-      critical: { 
-        icon: <AlertOctagon className="w-4 h-4" />, 
-        color: 'text-[#FF3B30]',
-        label: 'Critical'
-      },
-      high: { 
-        icon: <Zap className="w-4 h-4" />, 
-        color: 'text-[#FF9500]',
-        label: 'High'
-      },
-      medium: { 
-        icon: <Lightbulb className="w-4 h-4" />, 
-        color: 'text-[#007AFF]',
-        label: 'Medium'
-      },
-      low: { 
-        icon: <FileText className="w-4 h-4" />, 
-        color: 'text-[#8E8E93]',
-        label: 'Low'
-      }
-    };
-    return configs[priority] || configs.medium;
+    setTimeout(() => setToast(null), 2500);
   };
 
   const getOperationalCount = (): { healthy: number; total: number } => {
@@ -232,8 +173,7 @@ const SystemHealthMonitor: React.FC = () => {
   };
 
   const formatLastUpdate = (): string => {
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - lastUpdate.getTime()) / 1000);
+    const diff = Math.floor((Date.now() - lastUpdate.getTime()) / 1000);
     if (diff < 5) return 'just now';
     if (diff < 60) return `${diff}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -246,7 +186,7 @@ const SystemHealthMonitor: React.FC = () => {
       priority: 'high',
       type: 'optimization',
       title: 'Optimize posting schedule',
-      description: 'Analysis suggests shifting to peak engagement hours could improve reach significantly.',
+      description: 'Analysis suggests shifting to peak engagement hours could improve reach.',
       impact: '+40% engagement'
     },
     {
@@ -260,48 +200,63 @@ const SystemHealthMonitor: React.FC = () => {
   ];
 
   // ============================================
-  // GLASS CARD STYLES
-  // ============================================
-  
-  const glassCard = "bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/50 shadow-[0_4px_30px_rgba(0,0,0,0.08)] rounded-3xl";
-  const glassCardInner = "bg-white/50 backdrop-blur-md border border-white/60 shadow-[0_2px_15px_rgba(0,0,0,0.04)] rounded-2xl";
-
-  // ============================================
-  // RENDER
+  // RENDER - LOADING
   // ============================================
 
   if (loading) {
     return (
-      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
-        <div className={`${glassCard} p-8`}>
+      <div className="rounded-[28px] p-6 mb-8" style={{ backgroundColor: '#F5F5F7' }}>
+        <div 
+          className="rounded-[22px] p-8"
+          style={{
+            background: 'rgba(255, 255, 255, 0.72)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <div className="flex items-center justify-center py-8">
-            <RefreshCw className="w-5 h-5 text-[#007AFF] animate-spin mr-3" />
-            <span className="text-[#1D1D1F] font-medium">Loading system health...</span>
+            <RefreshCw className="w-5 h-5 animate-spin mr-3" style={{ color: '#007AFF' }} />
+            <span style={{ color: '#1D1D1F' }} className="font-medium">Loading...</span>
           </div>
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // RENDER - ERROR
+  // ============================================
+
   if (error) {
     return (
-      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
-        <div className={`${glassCard} p-8`}>
+      <div className="rounded-[28px] p-6 mb-8" style={{ backgroundColor: '#F5F5F7' }}>
+        <div 
+          className="rounded-[22px] p-8"
+          style={{
+            background: 'rgba(255, 255, 255, 0.72)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-[#FF3B30]/10">
-                <AlertTriangle className="w-6 h-6 text-[#FF3B30]" />
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 122, 255, 0.1)' }}>
+                <Minus className="w-6 h-6" style={{ color: '#007AFF' }} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-[#1D1D1F]">Connection Error</h3>
-                <p className="text-[#86868B] text-sm mt-0.5">Unable to reach Management Hub</p>
+                <h3 className="text-lg font-semibold" style={{ color: '#1D1D1F' }}>Connection Error</h3>
+                <p className="text-sm mt-0.5" style={{ color: '#86868B' }}>Unable to reach Management Hub</p>
               </div>
             </div>
             <button
               onClick={() => { fetchHealthData(); fetchRecommendations(); }}
-              className="px-5 py-2.5 bg-[#007AFF] hover:bg-[#0056CC] text-white rounded-full transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm"
+              className="px-5 py-2.5 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#007AFF' }}
             >
-              <RefreshCw className="w-4 h-4" />
               Retry
             </button>
           </div>
@@ -311,54 +266,64 @@ const SystemHealthMonitor: React.FC = () => {
   }
 
   const { healthy, total } = getOperationalCount();
-  const isAllHealthy = healthy === total;
   const displayRecs = recommendations.length > 0 ? recommendations : getSampleRecommendations();
+
+  // ============================================
+  // RENDER - MAIN
+  // ============================================
 
   return (
     <>
-      {/* Toast Notification */}
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="bg-[#1D1D1F] text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#34C759]" />
-            <span className="text-sm font-medium">{toast}</span>
-          </div>
+        <div className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-full text-sm font-medium text-white" style={{ backgroundColor: '#1D1D1F' }}>
+          {toast}
         </div>
       )}
 
-      {/* Main Container - Light Background */}
-      <div className="bg-[#F5F5F7] rounded-3xl p-8 mb-8">
+      {/* Container */}
+      <div className="rounded-[28px] p-6 mb-8" style={{ backgroundColor: '#F5F5F7' }}>
         
         {/* Main Glass Card */}
-        <div className={glassCard}>
+        <div 
+          className="rounded-[22px]"
+          style={{
+            background: 'rgba(255, 255, 255, 0.72)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <div className="p-8">
             
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#007AFF]/20 to-[#5AC8FA]/20">
-                  <Activity className="w-6 h-6 text-[#007AFF]" />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 122, 255, 0.1)' }}>
+                  <Activity className="w-6 h-6" style={{ color: '#007AFF' }} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">
+                  <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#1D1D1F' }}>
                     System Health
                   </h2>
-                  <p className="text-[#86868B] text-sm mt-0.5">Real-time infrastructure monitoring</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#86868B' }}>
+                    Real-time monitoring
+                  </p>
                 </div>
               </div>
               
-              {/* Status Badge */}
-              <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl ${isAllHealthy ? 'bg-[#34C759]/10' : 'bg-[#FF9500]/10'}`}>
-                {isAllHealthy ? (
-                  <CheckCircle2 className="w-5 h-5 text-[#34C759]" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-[#FF9500]" />
-                )}
+              {/* Status */}
+              <div 
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl"
+                style={{ backgroundColor: 'rgba(0, 122, 255, 0.08)' }}
+              >
+                <CircleDot className="w-5 h-5" style={{ color: '#007AFF' }} />
                 <div className="text-right">
-                  <div className={`text-2xl font-semibold tracking-tight ${isAllHealthy ? 'text-[#34C759]' : 'text-[#FF9500]'}`}>
+                  <div className="text-2xl font-semibold" style={{ color: '#007AFF' }}>
                     {healthy}/{total}
                   </div>
-                  <p className="text-[#86868B] text-xs">operational</p>
+                  <p className="text-xs" style={{ color: '#86868B' }}>operational</p>
                 </div>
               </div>
             </div>
@@ -368,14 +333,25 @@ const SystemHealthMonitor: React.FC = () => {
               {healthData && Object.entries(healthData.systems).map(([key, system]) => (
                 <div
                   key={key}
-                  className={`${glassCardInner} p-4 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.02] cursor-default`}
+                  className="rounded-2xl p-4 transition-all duration-200 hover:scale-[1.02] cursor-default"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
+                  }}
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-3">
-                      {getStatusIcon(system.status)}
+                      {system.status === 'healthy' ? (
+                        <Circle className="w-5 h-5" style={{ color: '#007AFF', fill: '#007AFF' }} />
+                      ) : (
+                        <Circle className="w-5 h-5" style={{ color: '#86868B' }} />
+                      )}
                     </div>
-                    <p className="text-[#1D1D1F] font-medium text-sm truncate w-full">{system.name}</p>
-                    <p className={`text-xs mt-1 font-medium ${getStatusColor(system.status)}`}>
+                    <p className="font-medium text-sm truncate w-full" style={{ color: '#1D1D1F' }}>
+                      {system.name}
+                    </p>
+                    <p className="text-xs mt-1 font-medium" style={{ color: system.status === 'healthy' ? '#007AFF' : '#86868B' }}>
                       {system.status === 'healthy' && system.response_time_ms
                         ? `${Math.round(system.response_time_ms)}ms`
                         : system.status}
@@ -386,98 +362,116 @@ const SystemHealthMonitor: React.FC = () => {
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-[#D1D1D6] to-transparent my-8" />
+            <div className="h-px my-8" style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.06), transparent)' }} />
 
-            {/* AI Recommendations Section */}
+            {/* AI Insights */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#5856D6]/20 to-[#AF52DE]/20">
-                    <Sparkles className="w-5 h-5 text-[#5856D6]" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 122, 255, 0.1)' }}>
+                    <Sparkles className="w-5 h-5" style={{ color: '#007AFF' }} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-[#1D1D1F]">AI Insights</h3>
-                    <p className="text-[#86868B] text-xs">{displayRecs.length} recommendations</p>
+                    <h3 className="text-lg font-semibold" style={{ color: '#1D1D1F' }}>AI Insights</h3>
+                    <p className="text-xs" style={{ color: '#86868B' }}>{displayRecs.length} recommendations</p>
                   </div>
                 </div>
                 <button
                   onClick={generateRecommendations}
                   disabled={generating}
-                  className="px-5 py-2.5 bg-[#007AFF] hover:bg-[#0056CC] disabled:bg-[#007AFF]/50 text-white rounded-full transition-all duration-200 text-sm font-medium flex items-center gap-2 shadow-sm disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-full text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-50 flex items-center gap-2"
+                  style={{ backgroundColor: '#007AFF' }}
                 >
                   {generating ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Analyzing...</span>
+                      Analyzing...
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      <span>Generate Insights</span>
+                      Generate
                     </>
                   )}
                 </button>
               </div>
 
-              {/* Recommendations List */}
+              {/* Recommendations */}
               <div className="space-y-3">
-                {displayRecs.map((rec) => {
-                  const config = getPriorityConfig(rec.priority);
-                  return (
-                    <div
-                      key={rec.id}
-                      className={`${glassCardInner} p-5 transition-all duration-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          <div className={`p-2 rounded-xl bg-[#F5F5F7] ${config.color}`}>
-                            {config.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-semibold ${config.color}`}>
-                                {config.label}
+                {displayRecs.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="rounded-2xl p-5 transition-all duration-200"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.6)',
+                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)'
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-4 flex-1">
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: 'rgba(0, 122, 255, 0.1)' }}
+                        >
+                          <ChevronRight className="w-5 h-5" style={{ color: '#007AFF' }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span 
+                              className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                              style={{ 
+                                backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                                color: '#007AFF'
+                              }}
+                            >
+                              {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
+                            </span>
+                            {rec.type && (
+                              <span className="text-xs" style={{ color: '#86868B' }}>
+                                {rec.type}
                               </span>
-                              {rec.type && (
-                                <span className="text-xs text-[#86868B]">• {rec.type}</span>
-                              )}
-                            </div>
-                            <h4 className="font-semibold text-[#1D1D1F] text-sm">{rec.title}</h4>
-                            <p className="text-[#86868B] text-sm mt-1 leading-relaxed">{rec.description}</p>
-                            {rec.impact && (
-                              <div className="flex items-center gap-1.5 mt-2 text-xs text-[#86868B]">
-                                <TrendingUp className="w-3.5 h-3.5 text-[#34C759]" />
-                                <span>Expected: <span className="text-[#1D1D1F] font-medium">{rec.impact}</span></span>
-                              </div>
                             )}
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => markRecommendationDone(rec.id)}
-                            className="p-2.5 bg-[#34C759]/10 hover:bg-[#34C759]/20 text-[#34C759] rounded-xl transition-all duration-200"
-                            title="Mark as done"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => dismissRecommendation(rec.id)}
-                            className="p-2.5 bg-[#F5F5F7] hover:bg-[#E5E5EA] text-[#86868B] rounded-xl transition-all duration-200"
-                            title="Dismiss"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                          <h4 className="font-semibold text-sm" style={{ color: '#1D1D1F' }}>{rec.title}</h4>
+                          <p className="text-sm mt-1.5 leading-relaxed" style={{ color: '#86868B' }}>{rec.description}</p>
+                          {rec.impact && (
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <ArrowUpRight className="w-3.5 h-3.5" style={{ color: '#007AFF' }} />
+                              <span className="text-xs" style={{ color: '#86868B' }}>
+                                Expected: <span style={{ color: '#1D1D1F' }} className="font-medium">{rec.impact}</span>
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => markRecommendationDone(rec.id)}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-opacity hover:opacity-70"
+                          style={{ backgroundColor: 'rgba(0, 122, 255, 0.1)' }}
+                          title="Done"
+                        >
+                          <Check className="w-4 h-4" style={{ color: '#007AFF' }} />
+                        </button>
+                        <button
+                          onClick={() => dismissRecommendation(rec.id)}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-opacity hover:opacity-70"
+                          style={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}
+                          title="Dismiss"
+                        >
+                          <X className="w-4 h-4" style={{ color: '#86868B' }} />
+                        </button>
+                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#D1D1D6]/50">
-              <div className="flex items-center gap-6 text-xs text-[#86868B]">
+            <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid rgba(0, 0, 0, 0.04)' }}>
+              <div className="flex items-center gap-6 text-xs" style={{ color: '#86868B' }}>
                 <div className="flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Auto-refresh 30s</span>
@@ -486,14 +480,11 @@ const SystemHealthMonitor: React.FC = () => {
                   <Clock className="w-3.5 h-3.5" />
                   <span>Updated {formatLastUpdate()}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Powered by Claude</span>
-                </div>
               </div>
               <button
                 onClick={() => { fetchHealthData(); fetchRecommendations(); }}
-                className="px-4 py-2 bg-[#F5F5F7] hover:bg-[#E5E5EA] text-[#1D1D1F] rounded-full transition-all duration-200 text-xs font-medium flex items-center gap-2"
+                className="px-4 py-2 rounded-full text-xs font-medium transition-opacity hover:opacity-70 flex items-center gap-2"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.04)', color: '#1D1D1F' }}
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Refresh
@@ -504,9 +495,9 @@ const SystemHealthMonitor: React.FC = () => {
 
         {/* Branding */}
         <div className="text-center mt-6">
-          <p className="text-[#86868B] text-sm">
-            <span className="text-[#007AFF] font-medium">It's a Jungle</span>
-            <span className="mx-2">•</span>
+          <p className="text-sm" style={{ color: '#86868B' }}>
+            <span style={{ color: '#007AFF' }} className="font-medium">It's a Jungle</span>
+            <span className="mx-2">·</span>
             <span>Infrastructure Monitor</span>
           </p>
         </div>
