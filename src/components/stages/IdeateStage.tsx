@@ -13,6 +13,49 @@ import { AIProvider } from './ideate/types';
 import AIChatDialog from './ideate/AIChatDialog';
 import ApiKeyDialog from '@/components/ApiKeyDialog';
 
+// Apple Blue Glassmorphism Styles
+const stageStyles = {
+  container: {
+    background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%)',
+    minHeight: '100%',
+  },
+  glassCard: {
+    background: 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+    borderRadius: '20px',
+  },
+  askAllCard: {
+    background: 'rgba(0, 122, 255, 0.08)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 122, 255, 0.15)',
+    borderRadius: '20px',
+  },
+  blueButton: {
+    background: 'rgba(0, 122, 255, 0.9)',
+    border: 'none',
+    boxShadow: '0 4px 15px rgba(0, 122, 255, 0.3)',
+  },
+};
+
+// AI card colors - Apple-inspired
+const aiCardColors: Record<string, React.CSSProperties> = {
+  chatgpt: {
+    background: 'linear-gradient(135deg, #34C759 0%, #30B350 100%)',
+  },
+  claude: {
+    background: 'linear-gradient(135deg, #FF9500 0%, #FF8000 100%)',
+  },
+  gemini: {
+    background: 'linear-gradient(135deg, #007AFF 0%, #0056CC 100%)',
+  },
+  perplexity: {
+    background: 'linear-gradient(135deg, #5856D6 0%, #4B49C7 100%)',
+  },
+};
+
 const IdeateStage = () => {
   const { contentBlocks, updateContentBlock } = useContentBlocks();
   const [selectedBlocks, setSelectedBlocks] = useState<string[]>([]);
@@ -78,7 +121,7 @@ const IdeateStage = () => {
       id: 'chatgpt' as AIProvider,
       name: 'ChatGPT',
       icon: Bot,
-      color: 'bg-green-500',
+      color: 'chatgpt',
       description: 'Research & Analysis',
       subtitle: 'Creative brainstorming and idea generation'
     },
@@ -86,7 +129,7 @@ const IdeateStage = () => {
       id: 'claude' as AIProvider,
       name: 'Claude',
       icon: Sparkles,
-      color: 'bg-orange-500',
+      color: 'claude',
       description: 'Creative & Narrative',
       subtitle: 'Deep narrative insights and storytelling'
     },
@@ -94,7 +137,7 @@ const IdeateStage = () => {
       id: 'gemini' as AIProvider,
       name: 'Gemini',
       icon: Brain,
-      color: 'bg-blue-500',
+      color: 'gemini',
       description: 'Deep Research & Insights',
       subtitle: 'Comprehensive multi-perspective analysis'
     },
@@ -102,30 +145,33 @@ const IdeateStage = () => {
       id: 'perplexity' as AIProvider,
       name: 'Perplexity',
       icon: Search,
-      color: 'bg-purple-500',
+      color: 'perplexity',
       description: 'Real-time Web Search',
       subtitle: 'Latest information and trending topics'
     }
   ];
 
   return (
-    <div className="flex-1 bg-white">
+    <div className="flex-1" style={stageStyles.container}>
       <div className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ideas Lab</h2>
-          <p className="text-gray-600">Collaborate with AI assistants to brainstorm and create content blocks for your episode.</p>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#1D1D1F' }}>Ideas Lab</h2>
+          <p style={{ color: '#6B7280' }}>Collaborate with AI assistants to brainstorm and create content blocks for your episode.</p>
         </div>
 
         {/* Ask All AIs Section */}
-        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200">
+        <div className="mb-6" style={stageStyles.askAllCard}>
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+              <div 
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(0, 122, 255, 0.9)' }}
+              >
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Ask All AIs at Once</h3>
-                <p className="text-sm text-gray-600">Get diverse perspectives from all AI assistants simultaneously</p>
+                <h3 className="text-lg font-bold" style={{ color: '#1D1D1F' }}>Ask All AIs at Once</h3>
+                <p className="text-sm" style={{ color: '#6B7280' }}>Get diverse perspectives from all AI assistants simultaneously</p>
               </div>
             </div>
             
@@ -135,39 +181,45 @@ const IdeateStage = () => {
                 value={globalPrompt}
                 onChange={(e) => setGlobalPrompt(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAskAllAIs()}
-                className="flex-1 bg-white"
+                className="flex-1 rounded-xl border-gray-200"
+                style={{ background: 'rgba(255, 255, 255, 0.8)' }}
               />
-              <Button 
+              <button 
                 onClick={handleAskAllAIs}
                 disabled={!globalPrompt.trim()}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                className="px-5 py-2 rounded-full text-white font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center"
+                style={stageStyles.blueButton}
               >
                 <Send className="w-4 h-4 mr-2" />
                 Ask All
-              </Button>
+              </button>
             </div>
             
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs mt-2" style={{ color: '#9CA3AF' }}>
               💡 Tip: This will query all configured AI assistants and display their responses side-by-side for comparison
             </p>
           </div>
-        </Card>
+        </div>
 
         <div className="mb-6 flex justify-end">
-          <Button 
-            variant="outline"
+          <button 
             onClick={() => setShowApiKeyDialog(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all hover:scale-[1.02]"
+            style={{
+              background: 'rgba(255, 255, 255, 0.7)',
+              color: '#1D1D1F',
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+            }}
           >
             <Settings className="w-4 h-4" />
             Configure API Keys
-          </Button>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* AI Assistants Panel */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Assistants</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#1D1D1F' }}>AI Assistants</h3>
             
             {aiAssistants.map((assistant) => {
               const Icon = assistant.icon;
@@ -175,9 +227,10 @@ const IdeateStage = () => {
               const messageCount = chatMessages.filter(m => m.source === assistant.id).length;
               
               return (
-                <Card 
+                <div 
                   key={assistant.id} 
-                  className={`${assistant.color} text-white overflow-hidden cursor-pointer hover:shadow-lg transition-shadow`}
+                  className="text-white overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-[1.01] rounded-2xl"
+                  style={aiCardColors[assistant.color]}
                   onClick={() => openChat(assistant.id)}
                 >
                   <div className="p-4">
@@ -191,9 +244,15 @@ const IdeateStage = () => {
                           <p className="text-sm opacity-90">{assistant.description}</p>
                         </div>
                       </div>
-                      <Badge className={isKeySet ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                      <span 
+                        className="px-2 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          background: isKeySet ? 'rgba(255,255,255,0.25)' : 'rgba(255,59,48,0.3)',
+                          color: 'white',
+                        }}
+                      >
                         {isKeySet ? 'Ready' : 'No API Key'}
-                      </Badge>
+                      </span>
                     </div>
 
                     <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-3">
@@ -206,10 +265,8 @@ const IdeateStage = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        className="flex-1 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      <button 
+                        className="flex-1 px-4 py-2 rounded-full text-sm font-medium bg-white/20 hover:bg-white/30 transition-all flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           openChat(assistant.id);
@@ -217,10 +274,10 @@ const IdeateStage = () => {
                       >
                         <MessageSquare className="w-4 h-4 mr-2" />
                         Open Chat
-                      </Button>
+                      </button>
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>

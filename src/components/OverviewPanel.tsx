@@ -8,6 +8,22 @@ import OverviewPanelHeader from './overview/OverviewPanelHeader';
 import OverviewTab from './overview/OverviewTab';
 import ToneGuideTab from './overview/ToneGuideTab';
 
+// Apple Blue Glassmorphism Styles
+const panelStyles = {
+  overlay: {
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(4px)',
+  },
+  card: {
+    background: 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+    borderRadius: '24px',
+  },
+};
+
 const OverviewPanel: React.FC<OverviewPanelProps> = ({ isOpen, onClose }) => {
   // Load initial data from localStorage or use defaults
   const loadStoredOverview = (): ProjectOverview => {
@@ -108,8 +124,14 @@ const OverviewPanel: React.FC<OverviewPanelProps> = ({ isOpen, onClose }) => {
   const hasChanges = JSON.stringify(overview) !== JSON.stringify(savedOverview);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={panelStyles.overlay}
+    >
+      <div 
+        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        style={panelStyles.card}
+      >
         <div className="p-6">
           <OverviewPanelHeader
             isEditing={isEditing}
@@ -148,7 +170,7 @@ const OverviewPanel: React.FC<OverviewPanelProps> = ({ isOpen, onClose }) => {
             </TabsContent>
           </Tabs>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

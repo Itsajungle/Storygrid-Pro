@@ -7,85 +7,85 @@
 
 @layer base {
   :root {
-    /* Updated color scheme for It's a Jungle brand */
-    --background: 210 100% 15%; /* Starry Blue background */
-    --foreground: 60 100% 95%; /* Light yellow for text */
+    /* Apple Blue Glassmorphism Theme */
+    --background: 210 100% 98%; /* Light blue-gray */
+    --foreground: 220 13% 13%; /* Dark gray #1D1D1F */
 
-    --card: 210 100% 18%;
-    --card-foreground: 60 100% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 13%;
 
-    --popover: 210 100% 18%;
-    --popover-foreground: 60 100% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 13%;
 
-    --primary: 51 100% 50%; /* Bold Yellow */
-    --primary-foreground: 210 100% 15%;
+    --primary: 211 100% 50%; /* Apple Blue #007AFF */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 50% 25%;
-    --secondary-foreground: 60 100% 95%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 220 13% 13%;
 
-    --muted: 210 50% 20%;
-    --muted-foreground: 60 20% 70%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 220 9% 46%; /* #6B7280 */
 
-    --accent: 340 100% 73%; /* Jungle Pink */
-    --accent-foreground: 210 100% 15%;
+    --accent: 211 100% 50%; /* Apple Blue */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 210 50% 25%;
-    --input: 210 50% 25%;
-    --ring: 51 100% 50%; /* Bold Yellow ring */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 211 100% 50%; /* Apple Blue ring */
 
     --radius: 0.75rem;
 
-    --sidebar-background: 210 100% 12%;
-    --sidebar-foreground: 60 100% 95%;
-    --sidebar-primary: 51 100% 50%;
-    --sidebar-primary-foreground: 210 100% 15%;
-    --sidebar-accent: 210 50% 20%;
-    --sidebar-accent-foreground: 60 100% 95%;
-    --sidebar-border: 210 50% 25%;
-    --sidebar-ring: 51 100% 50%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 13% 13%;
+    --sidebar-primary: 211 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 220 13% 13%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 211 100% 50%;
   }
 
   .dark {
-    /* Dark mode keeps the same jungle theme but slightly adjusted */
-    --background: 210 100% 10%;
-    --foreground: 60 100% 98%;
+    /* Dark mode with Apple blue accents */
+    --background: 220 13% 10%;
+    --foreground: 210 40% 98%;
 
-    --card: 210 100% 12%;
-    --card-foreground: 60 100% 98%;
+    --card: 220 13% 13%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 210 100% 12%;
-    --popover-foreground: 60 100% 98%;
+    --popover: 220 13% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 51 100% 50%;
-    --primary-foreground: 210 100% 10%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 50% 15%;
-    --secondary-foreground: 60 100% 98%;
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 50% 15%;
-    --muted-foreground: 60 20% 75%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 220 9% 60%;
 
-    --accent: 340 100% 73%;
-    --accent-foreground: 210 100% 10%;
+    --accent: 211 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 210 50% 20%;
-    --input: 210 50% 20%;
-    --ring: 51 100% 50%;
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 211 100% 50%;
 
-    --sidebar-background: 210 100% 8%;
-    --sidebar-foreground: 60 100% 98%;
-    --sidebar-primary: 51 100% 50%;
-    --sidebar-primary-foreground: 210 100% 8%;
-    --sidebar-accent: 210 50% 15%;
-    --sidebar-accent-foreground: 60 100% 98%;
-    --sidebar-border: 210 50% 20%;
-    --sidebar-ring: 51 100% 50%;
+    --sidebar-background: 220 13% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 211 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 211 100% 50%;
   }
 }
 
@@ -101,8 +101,8 @@
 
 @layer components {
   .content-block {
-    @apply relative bg-white/95 backdrop-blur-sm rounded-lg border border-gray-400 p-4 transition-all duration-200 hover:border-gray-500 hover:shadow-md hover:bg-white cursor-move;
-    color: #1A1A1A;
+    @apply relative bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 p-4 transition-all duration-200 hover:border-gray-300 hover:shadow-md hover:bg-white cursor-move;
+    color: #1D1D1F;
   }
   
   .content-block.dragging {
@@ -136,13 +136,48 @@
   .timeline-tab-btn {
   }
 
-  /* Jungle background */
+  /* Apple Blue gradient background */
+  .apple-gradient-bg {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%);
+  }
+
+  /* Glass card effect */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Glass card inner */
+  .glass-card-inner {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Apple blue button */
+  .apple-blue-btn {
+    background: rgba(0, 122, 255, 0.9);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.25);
+    color: white;
+  }
+
+  .apple-blue-btn:hover {
+    background: rgba(0, 122, 255, 1);
+    transform: scale(1.02);
+  }
+
+  /* Jungle background - updated to Apple blue gradient */
   .jungle-background {
-    background-image: url('/lovable-uploads/7e93b36c-d9e6-45a0-998e-cf46a139858e.png');
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    background-repeat: no-repeat;
   }
 
   /* Block shape styles */
@@ -155,29 +190,31 @@
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   }
 
-  /* Jungle-themed enhancements */
-  .jungle-glow {
-    @apply shadow-lg shadow-boldYellow/20;
+  /* Apple blue themed enhancements */
+  .apple-glow {
+    @apply shadow-lg shadow-blue-500/20;
   }
 
-  .jungle-button {
+  .apple-button {
+    @apply bg-[#007AFF] text-white hover:bg-[#0056CC] font-semibold transition-all duration-200;
   }
 
-  .jungle-secondary-button {
-    @apply bg-junglePink text-white hover:bg-junglePink/90 font-semibold transition-all duration-200;
+  .apple-secondary-button {
+    @apply bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold transition-all duration-200;
   }
 
-  .jungle-success {
-    @apply bg-lushGreen text-white;
+  .apple-success {
+    @apply bg-[#34C759] text-white;
   }
 
-  .jungle-info {
+  .apple-info {
+    @apply bg-[#007AFF]/10 text-[#007AFF];
   }
 
   /* Standardized content block styling */
   .sg-content-block {
-    @apply bg-white/95 backdrop-blur-sm border border-gray-400 rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-500;
-    color: #1A1A1A;
+    @apply bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-300;
+    color: #1D1D1F;
   }
 
   .sg-content-block:hover {
@@ -188,24 +225,24 @@
     @apply ring-2 ring-blue-500 bg-white shadow-lg scale-105 rotate-1;
   }
 
-  /* Standardized badge styling */
+  /* Standardized badge styling - Apple blue theme */
   .sg-status-badge-planned {
-    @apply bg-blue-600 text-white border-blue-600;
+    @apply bg-[#007AFF] text-white border-[#007AFF];
   }
 
   .sg-status-badge-filmed {
-    @apply bg-amber-600 text-white border-amber-600;
+    @apply bg-[#FF9500] text-white border-[#FF9500];
   }
 
   .sg-status-badge-in-edit {
-    @apply bg-purple-600 text-white border-purple-600;
+    @apply bg-[#5856D6] text-white border-[#5856D6];
   }
 
   .sg-status-badge-approved {
-    @apply bg-green-600 text-white border-green-600;
+    @apply bg-[#34C759] text-white border-[#34C759];
   }
 
   .sg-status-badge-default {
-    @apply bg-gray-600 text-white border-gray-600;
+    @apply bg-gray-500 text-white border-gray-500;
   }
 }

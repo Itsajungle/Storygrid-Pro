@@ -2,6 +2,43 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SystemHealthMonitor from '@/components/SystemHealthMonitor';
 
+// Import IAJ Logo
+import logo from '/Assets/IAJ Orange White copy.png';
+
+// Apple Blue Glassmorphism Styles
+const styles = {
+  // Light blue gradient background
+  gradientBg: {
+    background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #e0f2fe 60%, #f0f9ff 100%)',
+    minHeight: '100vh',
+  },
+  
+  // Glass card
+  glassCard: {
+    background: 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+  },
+  
+  // App card
+  appCard: {
+    background: 'rgba(255, 255, 255, 0.6)',
+    backdropFilter: 'blur(10px) saturate(150%)',
+    WebkitBackdropFilter: 'blur(10px) saturate(150%)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  },
+  
+  // Logo filter: orange to blue
+  logoFilter: {
+    filter: 'hue-rotate(190deg) saturate(0.8) brightness(1.1)',
+    height: '60px',
+    width: 'auto',
+  },
+};
+
 const ContentHub = () => {
   const navigate = useNavigate();
 
@@ -94,39 +131,68 @@ const ContentHub = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800">
+    <div style={styles.gradientBg}>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-12 bg-white/10 backdrop-blur-md rounded-3xl p-12">
-          <div className="text-6xl mb-6">🌴</div>
-          <h1 className="text-5xl font-bold text-white mb-4">It's a Jungle</h1>
-          <p className="text-xl text-white/90">Content Hub - AI-Powered Social Media Automation</p>
+        <div 
+          className="text-center mb-12 rounded-[28px] p-10"
+          style={styles.glassCard}
+        >
+          <img 
+            src={logo} 
+            alt="It's a Jungle" 
+            style={styles.logoFilter}
+            className="mx-auto mb-6"
+          />
+          <h1 className="text-4xl font-bold mb-3" style={{ color: '#1D1D1F' }}>
+            Content Hub
+          </h1>
+          <p className="text-lg" style={{ color: '#6B7280' }}>
+            AI-Powered Social Media Automation
+          </p>
         </div>
 
         {/* System Health Monitor */}
         <SystemHealthMonitor />
 
         {/* App Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
           {apps.map((app, index) => (
             <button
               key={index}
               onClick={() => handleCardClick(app)}
-              className="bg-white/10 backdrop-blur-md hover:bg-white/20 border-2 border-white/20 hover:border-white/40 rounded-2xl p-8 text-left transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-2xl group"
+              className="rounded-2xl p-6 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group"
+              style={styles.appCard}
             >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div 
+                className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300"
+              >
                 {app.icon}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">{app.title}</h3>
-              <p className="text-white/80 leading-relaxed">{app.description}</p>
+              <h3 
+                className="text-xl font-semibold mb-2"
+                style={{ color: '#1D1D1F' }}
+              >
+                {app.title}
+              </h3>
+              <p 
+                className="text-sm leading-relaxed"
+                style={{ color: '#6B7280' }}
+              >
+                {app.description}
+              </p>
             </button>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="text-center text-white/70 space-y-2">
-          <p className="text-lg">🌴 It's a Jungle Content Hub • Built with ❤️ • 2025</p>
-          <p className="text-sm">AI-powered social media automation for wellness content creators</p>
+        <div className="text-center space-y-2 pb-8">
+          <p className="text-sm" style={{ color: '#007AFF' }}>
+            It's a Jungle Content Hub • 2025
+          </p>
+          <p className="text-xs" style={{ color: '#9CA3AF' }}>
+            AI-powered social media automation for wellness content creators
+          </p>
         </div>
       </div>
     </div>

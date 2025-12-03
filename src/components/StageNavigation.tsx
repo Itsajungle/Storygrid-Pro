@@ -5,6 +5,9 @@ import GlobalFactCheckToggle from './GlobalFactCheckToggle';
 import { ProjectSelector } from './ProjectSelector';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Import IAJ Logo
+import logo from '/Assets/IAJ Orange White copy.png';
+
 interface Stage {
   id: string;
   name: string;
@@ -20,6 +23,43 @@ const stages: Stage[] = [
   { id: 'timeline', name: 'Timeline', icon: Calendar, description: 'Production planning' }
 ];
 
+// Apple Blue Glassmorphism Styles
+const navStyles = {
+  navbar: {
+    background: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.05)',
+  },
+  logoFilter: {
+    filter: 'hue-rotate(190deg) saturate(0.8) brightness(1.1)',
+    height: '32px',
+    width: 'auto',
+  },
+  activeTab: {
+    background: 'rgba(0, 122, 255, 0.9)',
+    color: 'white',
+    border: 'none',
+    boxShadow: '0 4px 15px rgba(0, 122, 255, 0.35)',
+  },
+  inactiveTab: {
+    background: 'rgba(255, 255, 255, 0.6)',
+    color: '#1D1D1F',
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+  },
+  settingsBtn: {
+    background: 'rgba(0, 122, 255, 0.1)',
+    color: '#007AFF',
+    border: '1px solid rgba(0, 122, 255, 0.2)',
+  },
+  logoutBtn: {
+    background: 'rgba(255, 59, 48, 0.1)',
+    color: '#FF3B30',
+    border: '1px solid rgba(255, 59, 48, 0.2)',
+  },
+};
+
 interface StageNavigationProps {
   currentStage: string;
   onStageChange: (stage: string) => void;
@@ -34,35 +74,40 @@ const StageNavigation: React.FC<StageNavigationProps> = ({
   const { signOut, user } = useAuth();
 
   return (
-    <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 backdrop-blur-md border-b border-green-500/20 px-6 py-4 shadow-lg">
+    <div className="px-6 py-4" style={navStyles.navbar}>
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-6">
+          {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-500 rounded-lg flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">SG</span>
-            </div>
-            <h1 className="text-xl font-bold text-white font-poppins drop-shadow-md">StoryGridPro</h1>
+            <img 
+              src={logo} 
+              alt="It's a Jungle" 
+              style={navStyles.logoFilter}
+            />
+            <h1 
+              className="text-lg font-bold"
+              style={{ color: '#1D1D1F' }}
+            >
+              StoryGridPro
+            </h1>
           </div>
           
+          {/* Navigation Tabs */}
           <div className="flex items-center gap-2">
             {stages.map((stage) => {
               const Icon = stage.icon;
               const isActive = currentStage === stage.id;
               
               return (
-                <Button
+                <button
                   key={stage.id}
-                  variant="ghost"
-                  className={`px-6 py-3 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
-                    isActive 
-                      ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/50'
-                      : 'bg-blue-950/50 text-white border border-green-400/30 hover:bg-green-500/20 hover:border-green-400/50'
-                  }`}
+                  className="px-5 py-2.5 rounded-full font-medium transition-all duration-200 hover:scale-[1.02] flex items-center"
+                  style={isActive ? navStyles.activeTab : navStyles.inactiveTab}
                   onClick={() => onStageChange(stage.id)}
                 >
                   <Icon className="w-4 h-4 mr-2" />
                   {stage.name}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -72,23 +117,23 @@ const StageNavigation: React.FC<StageNavigationProps> = ({
           <ProjectSelector />
           <GlobalFactCheckToggle />
           
-          <Button
-            variant="outline"
+          <button
             onClick={onOverviewToggle}
-            className="border-junglePink/50 text-junglePink hover:bg-junglePink/10 hover:border-junglePink bg-card/80 backdrop-blur-sm"
+            className="px-4 py-2 rounded-full font-medium transition-all duration-200 hover:scale-[1.02] flex items-center"
+            style={navStyles.settingsBtn}
           >
             <Settings className="w-4 h-4 mr-2" />
             Project Hub
-          </Button>
+          </button>
 
-          <Button
-            variant="outline"
+          <button
             onClick={signOut}
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 bg-card/80 backdrop-blur-sm"
+            className="p-2 rounded-full transition-all duration-200 hover:scale-[1.02]"
+            style={navStyles.logoutBtn}
             title={`Signed in as ${user?.email}`}
           >
             <LogOut className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
     </div>
