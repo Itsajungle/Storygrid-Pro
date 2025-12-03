@@ -23,13 +23,13 @@ const StoryStructureSelector: React.FC<StoryStructureSelectorProps> = ({
           <span className="text-sm text-gray-600">Total: {totalDuration} min</span>
         </div>
         <Select value={structure} onValueChange={(value) => onStructureChange(value as any)}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40 bg-white">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="3-act">3-Act Structure</SelectItem>
-            <SelectItem value="5-act">5-Act Structure</SelectItem>
-            <SelectItem value="7-act">7-Act Structure</SelectItem>
+          <SelectContent className="z-[100] bg-white">
+            <SelectItem value="3-act" className="bg-white hover:bg-gray-100">3-Act Structure</SelectItem>
+            <SelectItem value="5-act" className="bg-white hover:bg-gray-100">5-Act Structure</SelectItem>
+            <SelectItem value="7-act" className="bg-white hover:bg-gray-100">7-Act Structure</SelectItem>
           </SelectContent>
         </Select>
       </div>

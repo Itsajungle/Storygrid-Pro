@@ -57,11 +57,11 @@ export const ProjectSelector: React.FC = () => {
             <SelectValue placeholder="Select a project" />
           </div>
         </SelectTrigger>
-        <SelectContent className="!bg-white !text-gray-900">
+        <SelectContent className="!bg-white !text-gray-900 z-[100]">
           {projects.map((project) => {
             const template = templates.find(t => t.id === project.template_id);
             return (
-              <SelectItem key={project.id} value={project.id}>
+              <SelectItem key={project.id} value={project.id} className="bg-white hover:bg-gray-100">
                 <div className="flex flex-col">
                   <span>{project.title}</span>
                   {template && (
@@ -114,9 +114,9 @@ export const ProjectSelector: React.FC = () => {
                 <SelectTrigger id="template" className="!bg-white !text-gray-900">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100] bg-white">
                   {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
+                    <SelectItem key={template.id} value={template.id} className="bg-white hover:bg-gray-100">
                       <div className="flex flex-col">
                         <span>{template.name}</span>
                         {template.description && (
