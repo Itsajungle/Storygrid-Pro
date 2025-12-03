@@ -64,7 +64,7 @@ const IdeateStage = () => {
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   
   const { inputs, setInput, chatMessages, loadingStates, sendMessage, sendToAll } = useAIChat();
-  const { isOpenaiKeySet, isClaudeKeySet, isGeminiKeySet, isPerplexityKeySet } = useIdeateApiKeys();
+  const { isOpenaiKeySet, isClaudeKeySet, isGeminiKeySet, isPerplexityKeySet, isLoading, refreshKeys } = useIdeateApiKeys();
 
   const handleBlockSelect = (blockId: string, selected: boolean) => {
     setSelectedBlocks(prev => 
@@ -157,6 +157,15 @@ const IdeateStage = () => {
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2" style={{ color: '#1D1D1F' }}>Ideas Lab</h2>
           <p style={{ color: '#6B7280' }}>Collaborate with AI assistants to brainstorm and create content blocks for your episode.</p>
+          
+          {/* Show warning if no API keys are configured */}
+          {!isLoading && !isOpenaiKeySet && !isClaudeKeySet && !isGeminiKeySet && !isPerplexityKeySet && (
+            <div className="mt-4 p-4 rounded-lg" style={{ background: 'rgba(255, 59, 48, 0.1)', border: '1px solid rgba(255, 59, 48, 0.2)' }}>
+              <p className="text-sm font-medium" style={{ color: '#D32F2F' }}>
+                ⚠️ No API keys detected. Please configure at least one AI provider to use the Ideas Lab.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Ask All AIs Section */}
@@ -201,9 +210,27 @@ const IdeateStage = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex justify-end gap-3">
           <button 
-            onClick={() => setShowApiKeyDialog(true)}
+            onClick={() => {
+              refreshKeys();
+            }}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all hover:scale-[1.02] disabled:opacity-50"
+            style={{
+              background: 'rgba(255, 255, 255, 0.7)',
+              color: '#1D1D1F',
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+            }}
+          >
+            <Zap className="w-4 h-4" />
+            {isLoading ? 'Loading...' : 'Refresh Keys'}
+          </button>
+          <button 
+            onClick={() => {
+              setShowApiKeyDialog(true);
+              refreshKeys();
+            }}
             className="flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all hover:scale-[1.02]"
             style={{
               background: 'rgba(255, 255, 255, 0.7)',
@@ -317,7 +344,13 @@ const IdeateStage = () => {
       {/* API Key Configuration Dialog */}
       <ApiKeyDialog
         open={showApiKeyDialog}
-        onOpenChange={setShowApiKeyDialog}
+        onOpenChange={(open) => {
+          setShowApiKeyDialog(open);
+          if (!open) {
+            // Refresh keys when dialog closes
+            refreshKeys();
+          }
+        }}
       />
     </div>
   );
