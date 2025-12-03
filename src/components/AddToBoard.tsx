@@ -77,12 +77,16 @@ const AddToBoard: React.FC<AddToBoardProps> = ({ content, source }) => {
                 onValueChange={setBlockType} 
                 value={blockType}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select content type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100] bg-white">
                   {contentBlockTypes.map((type) => (
-                    <SelectItem key={type.type} value={type.type}>
+                    <SelectItem 
+                      key={type.type} 
+                      value={type.type}
+                      className="bg-white hover:bg-gray-100 cursor-pointer"
+                    >
                       {type.label}
                     </SelectItem>
                   ))}
