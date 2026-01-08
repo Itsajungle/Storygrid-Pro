@@ -108,7 +108,7 @@ python main.py
 
 **Frontend** (`.env` in root):
 ```bash
-VITE_MANAGEMENT_HUB_URL=https://web-production-a2e7f.up.railway.app
+VITE_MANAGEMENT_HUB_URL=https://management-hub-production-80d6.up.railway.app
 ```
 
 **Social Media** (`social-media/.env`):
