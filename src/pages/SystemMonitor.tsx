@@ -274,8 +274,28 @@ export default function SystemMonitor() {
     );
   };
 
-  if (!user || user.email !== 'itsajungletv@gmail.com') {
-    return null;
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>Please log in to access the System Monitor.</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (user.email !== 'itsajungletv@gmail.com') {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Access Denied. This page is restricted to authorized users only. (Logged in as: {user.email})
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
   }
 
   return (
