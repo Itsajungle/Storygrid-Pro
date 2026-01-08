@@ -189,12 +189,20 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
-    # Schedule AI recommendations (daily at 9am)
+    # Schedule AI recommendations (twice daily at 8am and 8pm)
     scheduler.add_job(
         generate_daily_recommendations,
-        trigger=CronTrigger(hour=9, minute=0),
-        id="daily_recommendations",
-        name="Daily AI Recommendations (9am)",
+        trigger=CronTrigger(hour=8, minute=0),
+        id="daily_recommendations_morning",
+        name="Morning AI Recommendations (8am)",
+        replace_existing=True
+    )
+    
+    scheduler.add_job(
+        generate_daily_recommendations,
+        trigger=CronTrigger(hour=20, minute=0),
+        id="daily_recommendations_evening",
+        name="Evening AI Recommendations (8pm)",
         replace_existing=True
     )
     
@@ -208,7 +216,7 @@ async def lifespan(app: FastAPI):
     )
     
     logger.info("✅ Scheduler started with optimized intervals")
-    logger.info("✅ AI recommendations scheduled daily at 9:00 AM")
+    logger.info("✅ AI recommendations scheduled twice daily at 8:00 AM and 8:00 PM")
     logger.info("✅ Auto-cleanup scheduled daily at 2:00 AM")
     logger.info("=" * 80)
     
