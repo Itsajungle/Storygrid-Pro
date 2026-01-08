@@ -79,7 +79,7 @@ const ContentHub = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const API_URL = import.meta.env.VITE_MANAGEMENT_HUB_URL || 'http://localhost:8000';
+  const API_URL = 'https://management-hub-production-80d6.up.railway.app';
 
   // ============================================
   // DATA FETCHING

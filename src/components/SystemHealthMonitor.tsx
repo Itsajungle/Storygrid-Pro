@@ -128,7 +128,7 @@ const SystemHealthMonitor: React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const API_URL = import.meta.env.VITE_MANAGEMENT_HUB_URL || 'http://localhost:8000';
+  const API_URL = 'https://management-hub-production-80d6.up.railway.app';
 
   // ============================================
   // DATA FETCHING
