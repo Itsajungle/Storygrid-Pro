@@ -55,7 +55,7 @@ METRICOOL_API_KEY=your_metricool_api_key_here
 METRICOOL_BASE_URL=https://api.metricool.com/v1
 
 # YouTube
-YOUTUBE_API_KEY=AIzaSyCMv98lquTx5UvdAGkRT3pp4AjPz5DJBKo
+YOUTUBE_API_KEY=your_youtube_api_key_here
 
 # Configuration
 ENVIRONMENT=production
