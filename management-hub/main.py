@@ -655,9 +655,8 @@ async def get_health_detailed():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/recommendations")
-@cached("recommendations", 300)
 async def get_recommendations(status: str = "pending", limit: int = 10):
-    """Get AI recommendations (cached 5min)"""
+    """Get AI recommendations (no cache for real-time updates)"""
     try:
         query = supabase.table("ai_recommendations").select("*")
         
@@ -670,14 +669,16 @@ async def get_recommendations(status: str = "pending", limit: int = 10):
         
         response = query.order("created_at", desc=True).limit(limit).execute()
         
+        logger.info(f"📋 Fetched {len(response.data)} recommendations with status: {status}")
+        
         return {
             "recommendations": response.data,
             "count": len(response.data),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "cached": True
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
     except Exception as e:
+        logger.error(f"Error fetching recommendations: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/recommendations/generate")
@@ -705,6 +706,20 @@ async def trigger_recommendations():
 async def apply_recommendation(recommendation_id: str):
     """Mark a recommendation as applied"""
     try:
+        logger.info(f"🔄 Attempting to apply recommendation ID: {recommendation_id}")
+        
+        # First check if the recommendation exists
+        check_response = supabase.table("ai_recommendations")\
+            .select("*")\
+            .eq("id", recommendation_id)\
+            .execute()
+        
+        if not check_response.data:
+            logger.warning(f"❌ Recommendation {recommendation_id} not found in database")
+            raise HTTPException(status_code=404, detail=f"Recommendation {recommendation_id} not found")
+        
+        logger.info(f"✓ Found recommendation: {check_response.data[0].get('title', 'Unknown')}")
+        
         # Update the recommendation status
         response = supabase.table("ai_recommendations")\
             .update({
@@ -715,7 +730,7 @@ async def apply_recommendation(recommendation_id: str):
             .execute()
         
         if not response.data:
-            raise HTTPException(status_code=404, detail="Recommendation not found")
+            raise HTTPException(status_code=404, detail="Failed to update recommendation")
         
         # Clear cache
         CACHE["recommendations"]["data"] = None
@@ -731,7 +746,7 @@ async def apply_recommendation(recommendation_id: str):
         }
         supabase.table("workflow_events").insert(workflow_event).execute()
         
-        logger.info(f"✅ Recommendation {recommendation_id} applied")
+        logger.info(f"✅ Recommendation {recommendation_id} applied successfully")
         
         return {
             "message": "Recommendation applied successfully",
@@ -742,7 +757,7 @@ async def apply_recommendation(recommendation_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error applying recommendation: {str(e)}")
+        logger.error(f"❌ Error applying recommendation {recommendation_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/recommendations/{recommendation_id}/dismiss")

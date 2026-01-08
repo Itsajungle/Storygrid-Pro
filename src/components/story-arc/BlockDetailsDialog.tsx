@@ -59,12 +59,12 @@ const BlockDetailsDialog: React.FC<BlockDetailsDialogProps> = ({
               value={editedBlock.type} 
               onValueChange={(value) => onEditChange({type: value as any})}
             >
-              <SelectTrigger className="bg-white">
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-[100] bg-white">
+              <SelectContent>
                 {contentBlockTypes.map(type => (
-                  <SelectItem key={type.type} value={type.type} className="bg-white hover:bg-gray-100">
+                  <SelectItem key={type.type} value={type.type}>
                     {type.label}
                   </SelectItem>
                 ))}
@@ -98,13 +98,13 @@ const BlockDetailsDialog: React.FC<BlockDetailsDialogProps> = ({
                 value={editedBlock.status || 'draft'} 
                 onValueChange={(value) => onEditChange({status: value as any})}
               >
-                <SelectTrigger className="bg-white">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="z-[100] bg-white">
-                  <SelectItem value="draft" className="bg-white hover:bg-gray-100">Draft</SelectItem>
-                  <SelectItem value="needs-review" className="bg-white hover:bg-gray-100">Needs Review</SelectItem>
-                  <SelectItem value="approved" className="bg-white hover:bg-gray-100">Approved</SelectItem>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="needs-review">Needs Review</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
             </div>
