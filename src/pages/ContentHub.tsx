@@ -125,10 +125,10 @@ const ContentHub = () => {
 
   const markRecommendationDone = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}/apply`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completed' })
+        body: JSON.stringify({ status: 'applied' })
       });
       if (response.ok) {
         setRecommendations(prev => prev.filter(r => r.id !== id));
@@ -140,8 +140,8 @@ const ContentHub = () => {
 
   const dismissRecommendation = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}/dismiss`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'dismissed' })
       });
