@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsItem } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EpisodeOverview from '@/components/timeline/EpisodeOverview';
 import ProductionTimelineFixed from '@/components/timeline/ProductionTimelineFixed';
 
@@ -32,18 +32,18 @@ const TimelineStage = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/90 backdrop-blur-sm border border-gray-400 rounded-lg p-2 shadow-md">
-          <TabsItem 
+          <TabsTrigger 
             value="overview"
             className="timeline-refined-tab data-[state=active]:bg-softGold data-[state=active]:text-black data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-600 hover:bg-lushGreen/10 hover:text-starryBlue transition-all duration-200 text-gray-700 font-semibold"
           >
             Episode Overview
-          </TabsItem>
-          <TabsItem 
+          </TabsTrigger>
+          <TabsTrigger 
             value="timeline"
             className="timeline-refined-tab data-[state=active]:bg-softGold data-[state=active]:text-black data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-600 hover:bg-lushGreen/10 hover:text-starryBlue transition-all duration-200 text-gray-700 font-semibold"
           >
             Production Timeline
-          </TabsItem>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-0">

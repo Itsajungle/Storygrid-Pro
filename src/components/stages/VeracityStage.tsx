@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useContentBlocks, ContentBlock, ScriptBlock } from '@/contexts/ContentBlocksContext';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsItem } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FactCheckResult, VeracityStatus, CitationStyle } from '@/types/veracity';
@@ -168,9 +168,9 @@ const VeracityStage = () => {
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
               <div className="flex items-center justify-between mb-4">
                 <TabsList className="bg-gray-100">
-                  <TabsItem value="script" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Results</TabsItem>
-                  <TabsItem value="flags" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Resolutions</TabsItem>
-                  <TabsItem value="export" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Export</TabsItem>
+                  <TabsTrigger value="script" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Results</TabsTrigger>
+                  <TabsTrigger value="flags" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Resolutions</TabsTrigger>
+                  <TabsTrigger value="export" className="text-gray-800 data-[state=active]:bg-white data-[state=active]:text-gray-900">Export</TabsTrigger>
                 </TabsList>
                 
                 <Badge variant={isLoading ? "outline" : "default"} className="ml-2 text-gray-800 border-gray-400">

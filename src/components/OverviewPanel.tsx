@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsItem } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { ProjectOverview, OverviewPanelProps } from './overview/types';
 import OverviewPanelHeader from './overview/OverviewPanelHeader';
@@ -144,8 +144,8 @@ const OverviewPanel: React.FC<OverviewPanelProps> = ({ isOpen, onClose }) => {
 
           <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-6">
-              <TabsItem value="overview">Overview</TabsItem>
-              <TabsItem value="tone-guide">Tone Guide</TabsItem>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="tone-guide">Tone Guide</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6">

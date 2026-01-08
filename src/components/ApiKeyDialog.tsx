@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Key } from 'lucide-react';
 import { useApiKeyManager } from '@/hooks/useApiKeyManager';
-import { Tabs, TabsContent, TabsList, TabsItem } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ApiKeyTab from './api-key/ApiKeyTab';
 
 interface ApiKeyDialogProps {
@@ -63,10 +63,10 @@ const ApiKeyDialog: React.FC<ApiKeyDialogProps> = ({ open, onOpenChange }) => {
         
         <Tabs defaultValue="openai" className="w-full flex gap-4">
           <TabsList className="flex flex-col h-fit bg-gray-50 p-2 gap-1 rounded-lg w-40">
-            <TabsItem value="openai" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">OpenAI</TabsItem>
-            <TabsItem value="claude" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Claude</TabsItem>
-            <TabsItem value="gemini" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Gemini</TabsItem>
-            <TabsItem value="perplexity" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Perplexity</TabsItem>
+            <TabsTrigger value="openai" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">OpenAI</TabsTrigger>
+            <TabsTrigger value="claude" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Claude</TabsTrigger>
+            <TabsTrigger value="gemini" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Gemini</TabsTrigger>
+            <TabsTrigger value="perplexity" className="w-full justify-start data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium text-sm rounded-md px-3 py-2">Perplexity</TabsTrigger>
           </TabsList>
           
           <div className="flex-1">
