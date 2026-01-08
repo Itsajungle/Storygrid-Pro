@@ -68,12 +68,7 @@ export default function SystemMonitor() {
   const [error, setError] = useState<string | null>(null);
   const [processingRec, setProcessingRec] = useState<string | null>(null);
 
-  // Access control - only allow itsajungletv@gmail.com
-  useEffect(() => {
-    if (!user || user.email !== 'itsajungletv@gmail.com') {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  // Removed redirect - handled in render instead
 
   const fetchData = async () => {
     setLoading(true);
