@@ -80,27 +80,42 @@ export default function SystemMonitor() {
     setError(null);
     
     try {
+      console.log('Fetching from Management Hub:', MANAGEMENT_HUB_URL);
+      
       // Fetch health overview
       const healthResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/health/overview`);
+      console.log('Health response:', healthResponse.status, healthResponse.ok);
       if (healthResponse.ok) {
         const healthJson = await healthResponse.json();
+        console.log('Health data:', healthJson);
         setHealthData(healthJson);
+      } else {
+        console.error('Health fetch failed:', healthResponse.status, healthResponse.statusText);
       }
 
       // Fetch recommendations
       const recsResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/recommendations?status=pending&limit=10`);
+      console.log('Recommendations response:', recsResponse.status, recsResponse.ok);
       if (recsResponse.ok) {
         const recsJson = await recsResponse.json();
+        console.log('Recommendations data:', recsJson);
         setRecommendations(recsJson.recommendations || []);
+      } else {
+        console.error('Recommendations fetch failed:', recsResponse.status, recsResponse.statusText);
       }
 
       // Fetch performance metrics
       const metricsResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/metrics/performance?hours=24`);
+      console.log('Metrics response:', metricsResponse.status, metricsResponse.ok);
       if (metricsResponse.ok) {
         const metricsJson = await metricsResponse.json();
+        console.log('Metrics data:', metricsJson);
         setMetrics(metricsJson.metrics || []);
+      } else {
+        console.error('Metrics fetch failed:', metricsResponse.status, metricsResponse.statusText);
       }
     } catch (err) {
+      console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
