@@ -499,7 +499,7 @@ Analyze this data and provide 3-5 actionable recommendations as JSON:
                         "system_name": rec.get("system_name", "all"),
                         "actionable": True,
                         "action_url": None,
-                        "status": "active",
+                        "status": "pending",
                         "metadata": {
                             "source": "claude_sonnet_4",
                             "action": rec.get("action", ""),
@@ -523,7 +523,7 @@ Analyze this data and provide 3-5 actionable recommendations as JSON:
             "system_name": "all",
             "actionable": True,
             "action_url": None,
-            "status": "active",
+            "status": "pending",
             "metadata": {"source": "claude_sonnet_4"},
             "created_at": datetime.now(timezone.utc).isoformat()
         }]
@@ -656,10 +656,18 @@ async def get_health_detailed():
 
 @app.get("/api/recommendations")
 @cached("recommendations", 300)
-async def get_recommendations(status: str = "active", limit: int = 10):
+async def get_recommendations(status: str = "pending", limit: int = 10):
     """Get AI recommendations (cached 5min)"""
     try:
-        query = supabase.table("ai_recommendations").select("*").eq("status", status)
+        query = supabase.table("ai_recommendations").select("*")
+        
+        # Handle different status values
+        if status == "pending":
+            # Get recommendations that are either 'pending' or 'active'
+            query = query.in_("status", ["pending", "active"])
+        else:
+            query = query.eq("status", status)
+        
         response = query.order("created_at", desc=True).limit(limit).execute()
         
         return {
@@ -691,6 +699,94 @@ async def trigger_recommendations():
         }
     
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/recommendations/{recommendation_id}/apply")
+async def apply_recommendation(recommendation_id: str):
+    """Mark a recommendation as applied"""
+    try:
+        # Update the recommendation status
+        response = supabase.table("ai_recommendations")\
+            .update({
+                "status": "applied",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })\
+            .eq("id", recommendation_id)\
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        # Clear cache
+        CACHE["recommendations"]["data"] = None
+        
+        # Log the action
+        workflow_event = {
+            "event_type": "recommendation_applied",
+            "source_system": "management_hub",
+            "target_system": "system_monitor",
+            "status": "completed",
+            "payload": {"recommendation_id": recommendation_id},
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        supabase.table("workflow_events").insert(workflow_event).execute()
+        
+        logger.info(f"✅ Recommendation {recommendation_id} applied")
+        
+        return {
+            "message": "Recommendation applied successfully",
+            "recommendation_id": recommendation_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error applying recommendation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/recommendations/{recommendation_id}/dismiss")
+async def dismiss_recommendation(recommendation_id: str):
+    """Mark a recommendation as dismissed"""
+    try:
+        # Update the recommendation status
+        response = supabase.table("ai_recommendations")\
+            .update({
+                "status": "dismissed",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })\
+            .eq("id", recommendation_id)\
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        # Clear cache
+        CACHE["recommendations"]["data"] = None
+        
+        # Log the action
+        workflow_event = {
+            "event_type": "recommendation_dismissed",
+            "source_system": "management_hub",
+            "target_system": "system_monitor",
+            "status": "completed",
+            "payload": {"recommendation_id": recommendation_id},
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        supabase.table("workflow_events").insert(workflow_event).execute()
+        
+        logger.info(f"🚫 Recommendation {recommendation_id} dismissed")
+        
+        return {
+            "message": "Recommendation dismissed successfully",
+            "recommendation_id": recommendation_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error dismissing recommendation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/metrics/performance")

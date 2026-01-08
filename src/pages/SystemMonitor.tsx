@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Activity, 
   TrendingUp, 
@@ -59,11 +60,13 @@ interface PerformanceMetric {
 export default function SystemMonitor() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [healthData, setHealthData] = useState<SystemHealth | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [processingRec, setProcessingRec] = useState<string | null>(null);
 
   // Access control - only allow itsajungletv@gmail.com
   useEffect(() => {
@@ -110,10 +113,103 @@ export default function SystemMonitor() {
         method: 'POST',
       });
       if (response.ok) {
+        toast({
+          title: "Recommendations Generated",
+          description: "New AI recommendations have been created successfully.",
+        });
         await fetchData(); // Refresh all data
       }
     } catch (err) {
       console.error('Failed to generate recommendations:', err);
+      toast({
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const applyRecommendation = async (recId: string, title: string) => {
+    setProcessingRec(recId);
+    try {
+      // Update the recommendation status to 'applied' in the backend
+      const response = await fetch(`${MANAGEMENT_HUB_URL}/api/recommendations/${recId}/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'applied',
+          applied_by: user?.email,
+          applied_at: new Date().toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Recommendation Applied",
+          description: `"${title}" has been marked as applied successfully.`,
+        });
+        
+        // Remove from local state immediately for better UX
+        setRecommendations(prev => prev.filter(rec => rec.id !== recId));
+        
+        // Refresh data from server
+        await fetchData();
+      } else {
+        throw new Error('Failed to apply recommendation');
+      }
+    } catch (err) {
+      console.error('Failed to apply recommendation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to apply recommendation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingRec(null);
+    }
+  };
+
+  const dismissRecommendation = async (recId: string, title: string) => {
+    setProcessingRec(recId);
+    try {
+      // Update the recommendation status to 'dismissed' in the backend
+      const response = await fetch(`${MANAGEMENT_HUB_URL}/api/recommendations/${recId}/dismiss`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'dismissed',
+          dismissed_by: user?.email,
+          dismissed_at: new Date().toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Recommendation Dismissed",
+          description: `"${title}" has been dismissed.`,
+        });
+        
+        // Remove from local state immediately for better UX
+        setRecommendations(prev => prev.filter(rec => rec.id !== recId));
+        
+        // Refresh data from server
+        await fetchData();
+      } else {
+        throw new Error('Failed to dismiss recommendation');
+      }
+    } catch (err) {
+      console.error('Failed to dismiss recommendation:', err);
+      toast({
+        title: "Error",
+        description: "Failed to dismiss recommendation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingRec(null);
     }
   };
 
@@ -317,8 +413,22 @@ export default function SystemMonitor() {
                         <p className="text-sm text-blue-800">{rec.recommended_action}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="default">Apply Recommendation</Button>
-                        <Button size="sm" variant="outline">Dismiss</Button>
+                        <Button 
+                          size="sm" 
+                          variant="default"
+                          onClick={() => applyRecommendation(rec.id, rec.title)}
+                          disabled={processingRec === rec.id}
+                        >
+                          {processingRec === rec.id ? 'Applying...' : 'Apply Recommendation'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => dismissRecommendation(rec.id, rec.title)}
+                          disabled={processingRec === rec.id}
+                        >
+                          {processingRec === rec.id ? 'Dismissing...' : 'Dismiss'}
+                        </Button>
                         <Button size="sm" variant="ghost">View Details</Button>
                       </div>
                     </div>
