@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, BarChart, FileText, Search, Calendar, Settings, LogOut } from 'lucide-react';
+import { Lightbulb, BarChart, FileText, Search, Calendar, Settings, LogOut, Activity } from 'lucide-react';
 import GlobalFactCheckToggle from './GlobalFactCheckToggle';
 import { ProjectSelector } from './ProjectSelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Import IAJ Logo
 import logo from '/Assets/IAJ Orange White copy.png';
@@ -72,6 +73,7 @@ const StageNavigation: React.FC<StageNavigationProps> = ({
   onOverviewToggle 
 }) => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="px-6 py-4" style={navStyles.navbar}>
@@ -116,6 +118,22 @@ const StageNavigation: React.FC<StageNavigationProps> = ({
         <div className="flex items-center gap-3">
           <ProjectSelector />
           <GlobalFactCheckToggle />
+          
+          {/* System Monitor - Only visible to admin */}
+          {user?.email === 'itsajungletv@gmail.com' && (
+            <button
+              onClick={() => navigate('/system-monitor')}
+              className="px-4 py-2 rounded-full font-medium transition-all duration-200 hover:scale-[1.02] flex items-center"
+              style={{
+                background: 'rgba(52, 199, 89, 0.1)',
+                color: '#34C759',
+                border: '1px solid rgba(52, 199, 89, 0.2)',
+              }}
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              System Monitor
+            </button>
+          )}
           
           <button
             onClick={onOverviewToggle}

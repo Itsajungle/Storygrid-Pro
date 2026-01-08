@@ -10,6 +10,7 @@ import ContentHub from "./pages/ContentHub";
 import StoryGridApp from "./pages/StoryGridApp";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import SystemMonitor from "./pages/SystemMonitor";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,14 @@ const App = () => (
               }
             />
             <Route path="/app" element={<StoryGridApp />} />
+            <Route
+              path="/system-monitor"
+              element={
+                <ProtectedRoute>
+                  <SystemMonitor />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
