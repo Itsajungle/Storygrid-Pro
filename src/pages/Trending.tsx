@@ -1739,10 +1739,86 @@ const Trending = () => {
                   fontSize: '15px',
                   color: '#EA580C',
                   fontWeight: '600',
-                  marginBottom: '20px'
+                  marginBottom: '4px'
                 }}>
                   "{selectedTopic.topic}"
                 </p>
+
+                {/* Percentage Change with Comparison Period */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '12px',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  background: selectedTopic.trend === 'up' ? 'rgba(16, 185, 129, 0.1)' : 
+                             selectedTopic.trend === 'down' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                }}>
+                  <div style={{
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: selectedTopic.trend === 'up' ? '#10B981' : selectedTopic.trend === 'down' ? '#EF4444' : '#6B7280'
+                  }}>
+                    {getTrendIcon(selectedTopic.trend)}
+                    {selectedTopic.changePercent > 0 ? '+' : ''}{selectedTopic.changePercent}%
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: '600' }}>
+                    vs {timeframe === 'today' ? 'yesterday' : timeframe === 'week' ? 'last week' : timeframe === 'month' ? 'last month' : 'last year'}
+                  </div>
+                </div>
+
+                {/* "Driven by" Summary */}
+                {selectedTopic.sourceBreakdown.length > 0 && (
+                  <div style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(124, 58, 237, 0.05)',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <TrendingUp size={14} color="#7C3AED" />
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#7C3AED' }}>
+                      Driven by {getSourceById(selectedTopic.sourceBreakdown[0].sourceId)?.name || 'Multiple sources'}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#6B7280' }}>
+                      ({selectedTopic.sourceBreakdown[0].percentage}% of mentions)
+                    </span>
+                  </div>
+                )}
+
+                {/* Trend Velocity Label */}
+                {graphData.length > 3 && (
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    background: 'rgba(234, 88, 12, 0.05)',
+                    marginBottom: '20px',
+                    fontSize: '12px',
+                    color: '#EA580C',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    {(() => {
+                      const recentValues = graphData.slice(-3).map(d => d.value);
+                      const earlierValues = graphData.slice(0, 3).map(d => d.value);
+                      const recentAvg = recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
+                      const earlierAvg = earlierValues.reduce((a, b) => a + b, 0) / earlierValues.length;
+                      const velocity = recentAvg > earlierAvg * 1.2 ? 'Accelerating' : 
+                                       recentAvg < earlierAvg * 0.8 ? 'Decelerating' : 'Steady growth';
+                      return (
+                        <>
+                          {velocity === 'Accelerating' ? '🚀' : velocity === 'Decelerating' ? '⚠️' : '📊'}
+                          {velocity}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Graph */}
                 <div style={{ marginBottom: '20px' }}>
@@ -1761,7 +1837,7 @@ const Trending = () => {
                   <TrendChart data={graphData} />
                 </div>
 
-                {/* Stats */}
+                {/* Stats with Baseline Comparison */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
@@ -1776,7 +1852,19 @@ const Trending = () => {
                     <div style={{ fontSize: '22px', fontWeight: '700', color: '#EA580C' }}>
                       {formatNumber(selectedTopic.searchVolume)}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#6B7280' }}>Monthly Searches</div>
+                    <div style={{ fontSize: '11px', color: '#6B7280', marginBottom: '4px' }}>Monthly Searches</div>
+                    {(() => {
+                      const baselineVolume = Math.round(selectedTopic.searchVolume / (1 + selectedTopic.changePercent / 100));
+                      return (
+                        <div style={{ 
+                          fontSize: '11px', 
+                          color: '#9CA3AF',
+                          fontWeight: '600'
+                        }}>
+                          up from {formatNumber(baselineVolume)}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div style={{
                     padding: '14px',
@@ -1796,13 +1884,21 @@ const Trending = () => {
                     fontSize: '12px',
                     fontWeight: '700',
                     color: '#6B7280',
-                    marginBottom: '10px',
+                    marginBottom: '6px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
                   }}>
                     <Database size={14} />
                     SOURCE BREAKDOWN
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: '#9CA3AF',
+                    marginBottom: '10px',
+                    fontStyle: 'italic'
+                  }}>
+                    Where people are talking about this topic
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {selectedTopic.sourceBreakdown.map(sb => {
