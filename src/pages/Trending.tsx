@@ -1021,11 +1021,15 @@ const Trending = () => {
       const openaiKey = localStorage.getItem('VITE_OPENAI_API_KEY');
       const claudeKey = localStorage.getItem('VITE_ANTHROPIC_API_KEY');
 
+      console.log('🔑 Checking API keys...');
+      console.log('OpenAI key found:', openaiKey ? `Yes (${openaiKey.substring(0, 7)}...)` : 'No');
+      console.log('Claude key found:', claudeKey ? `Yes (${claudeKey.substring(0, 10)}...)` : 'No');
+
       let summary = '';
 
       // Try Claude first (cheaper and better for analysis)
       if (claudeKey && claudeKey.startsWith('sk-ant-')) {
-        console.log('Using Claude API for trend summary');
+        console.log('✅ Using Claude API for trend summary');
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
@@ -1067,7 +1071,7 @@ Be specific, actionable, and focus on what Susan should do next.`
       } 
       // Fallback to OpenAI
       else if (openaiKey && openaiKey.startsWith('sk-')) {
-        console.log('Using OpenAI API for trend summary');
+        console.log('✅ Using OpenAI API for trend summary');
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -1107,11 +1111,20 @@ ${JSON.stringify(context, null, 2)}`
       setAiSummary(summary);
       
     } catch (error: any) {
-      console.error('AI summary error:', error);
+      console.error('❌ AI summary error:', error);
+      
+      // Get keys again to check in error handler
+      const openaiKey = localStorage.getItem('VITE_OPENAI_API_KEY');
+      const claudeKey = localStorage.getItem('VITE_ANTHROPIC_API_KEY');
+      
       if (error.message === 'No API key found') {
-        setAiSummary('⚠️ No API key found. Please add your OpenAI or Claude API key in Settings → API Keys.');
+        console.log('No API keys found in localStorage');
+        setAiSummary('⚠️ No API key found. Please add your OpenAI or Claude API key in Settings → API Keys. Then refresh the page.');
+      } else if (!openaiKey && !claudeKey) {
+        setAiSummary('⚠️ No API keys configured. Please go to Settings → API Keys to add your OpenAI or Claude key, then refresh this page.');
       } else {
-        setAiSummary('⚠️ Unable to generate AI summary. Please check your API keys in Settings.');
+        console.log('API call failed:', error.message);
+        setAiSummary(`⚠️ API Error: ${error.message}. Check browser console for details.`);
       }
     } finally {
       setGeneratingAI(false);
