@@ -34,7 +34,9 @@ import {
   CheckCircle,
   MapPin,
   AlertCircle,
-  Play
+  Play,
+  Sparkles as SparklesIcon,
+  Loader2
 } from 'lucide-react';
 
 // Management Hub API URL
@@ -755,8 +757,10 @@ const Trending = () => {
   const [youtubeTrends, setYoutubeTrends] = useState<YouTubeTrend[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
   const [graphData, setGraphData] = useState<TrendDataPoint[]>([]);
-  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'news' | 'podcasts' | 'newsletters' | 'pubmed' | 'scholar' | 'sources'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'news' | 'podcasts' | 'newsletters' | 'pubmed' | 'scholar' | 'sources' | 'tiktok'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
   
   // Real API data states
@@ -983,6 +987,77 @@ const Trending = () => {
   const handleTopicSelect = (topic: TrendingTopic) => {
     setSelectedTopic(topic);
     setGraphData(generateTrendGraph(timeframe));
+    setAiSummary(null); // Reset AI summary when selecting new topic
+  };
+
+  const generateAISummary = async () => {
+    if (!selectedTopic) return;
+    
+    setGeneratingAI(true);
+    
+    try {
+      // Gather context from all sources
+      const context = {
+        topic: selectedTopic.topic,
+        category: selectedTopic.category,
+        changePercent: selectedTopic.changePercent,
+        searchVolume: selectedTopic.searchVolume,
+        timeframe: timeframe,
+        trend: selectedTopic.trend,
+        sources: selectedTopic.sourceBreakdown.map(sb => {
+          const source = getSourceById(sb.sourceId);
+          return {
+            name: source?.name,
+            percentage: sb.percentage,
+            mentions: sb.mentions
+          };
+        }),
+        relatedTerms: selectedTopic.relatedTerms,
+        peakTime: selectedTopic.peakTime,
+        audienceDemo: selectedTopic.audienceDemo
+      };
+
+      // Call OpenAI API (you'll need to add this endpoint)
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('openai_api_key') || ''}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [{
+            role: 'system',
+            content: 'You are a health & wellness trend analyst. Provide concise, actionable insights for content creators.'
+          }, {
+            role: 'user',
+            content: `Analyze this health/wellness trend and provide a brief summary (3-4 sentences) covering:
+1. What's driving this trend
+2. Why it matters now
+3. Content opportunity for a health creator
+
+Trend data:
+${JSON.stringify(context, null, 2)}`
+          }],
+          max_tokens: 200,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate AI summary');
+      }
+
+      const data = await response.json();
+      const summary = data.choices[0].message.content;
+      setAiSummary(summary);
+      
+    } catch (error) {
+      console.error('AI summary error:', error);
+      setAiSummary('Unable to generate AI summary. Please check your OpenAI API key in settings.');
+    } finally {
+      setGeneratingAI(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -1788,6 +1863,88 @@ const Trending = () => {
                     </span>
                   </div>
                 )}
+
+                {/* AI Summary Section */}
+                <div style={{
+                  padding: '14px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%)',
+                  border: '1px solid rgba(124, 58, 237, 0.2)',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: aiSummary ? '10px' : '0'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      color: '#7C3AED'
+                    }}>
+                      <SparklesIcon size={14} />
+                      AI INSIGHT
+                    </div>
+                    <button
+                      onClick={generateAISummary}
+                      disabled={generatingAI}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: generatingAI ? 'rgba(107, 114, 128, 0.1)' : 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                        color: 'white',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        cursor: generatingAI ? 'not-allowed' : 'pointer',
+                        opacity: generatingAI ? 0.6 : 1
+                      }}
+                    >
+                      {generatingAI ? (
+                        <>
+                          <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <SparklesIcon size={12} />
+                          Generate Summary
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {aiSummary && (
+                    <div style={{
+                      fontSize: '13px',
+                      color: '#374151',
+                      lineHeight: '1.6',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.5)'
+                    }}>
+                      {aiSummary}
+                    </div>
+                  )}
+                  
+                  {!aiSummary && !generatingAI && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#9CA3AF',
+                      marginTop: '6px',
+                      fontStyle: 'italic'
+                    }}>
+                      Get AI-powered insights synthesized from all sources
+                    </div>
+                  )}
+                </div>
 
                 {/* Trend Velocity Label */}
                 {graphData.length > 3 && (
