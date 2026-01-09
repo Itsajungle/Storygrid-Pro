@@ -1465,10 +1465,306 @@ async def get_health_news(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@app.get("/api/trends/podcasts")
+async def get_podcast_trends(
+    category: str = "health",
+    limit: int = 20
+):
+    """
+    Get trending health & wellness podcasts from Apple Podcasts (iTunes API - free, no key!)
+    """
+    try:
+        # iTunes Search API - completely free, no key needed
+        search_url = "https://itunes.apple.com/search"
+        
+        # Health-related search terms
+        health_terms = [
+            "health wellness",
+            "longevity biohacking", 
+            "nutrition fitness",
+            "mental health",
+            "women's health menopause"
+        ]
+        
+        all_podcasts = []
+        seen_ids = set()
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for term in health_terms[:3]:  # Limit to avoid rate limiting
+                params = {
+                    "term": term,
+                    "media": "podcast",
+                    "country": "US",
+                    "limit": 10
+                }
+                
+                response = await client.get(search_url, params=params)
+                data = response.json()
+                
+                for item in data.get("results", []):
+                    podcast_id = item.get("collectionId")
+                    if podcast_id and podcast_id not in seen_ids:
+                        seen_ids.add(podcast_id)
+                        all_podcasts.append({
+                            "id": podcast_id,
+                            "name": item.get("collectionName", ""),
+                            "artist": item.get("artistName", ""),
+                            "artwork": item.get("artworkUrl600", item.get("artworkUrl100", "")),
+                            "genre": item.get("primaryGenreName", ""),
+                            "track_count": item.get("trackCount", 0),
+                            "feed_url": item.get("feedUrl", ""),
+                            "link": item.get("collectionViewUrl", ""),
+                            "rating": item.get("averageUserRating", 0),
+                            "rating_count": item.get("userRatingCount", 0)
+                        })
+        
+        # Sort by rating count (popularity)
+        all_podcasts.sort(key=lambda x: x.get("rating_count", 0), reverse=True)
+        
+        # Extract trending topics from podcast names
+        podcast_topics = {}
+        topic_terms = [
+            "health", "wellness", "longevity", "biohacking", "fitness", "nutrition",
+            "mental", "sleep", "gut", "hormone", "menopause", "meditation", "mindful",
+            "diet", "weight", "aging", "brain", "stress", "anxiety", "energy"
+        ]
+        
+        for podcast in all_podcasts:
+            name_lower = podcast["name"].lower()
+            for term in topic_terms:
+                if term in name_lower:
+                    if term not in podcast_topics:
+                        podcast_topics[term] = {"count": 0, "podcasts": []}
+                    podcast_topics[term]["count"] += 1
+                    if len(podcast_topics[term]["podcasts"]) < 2:
+                        podcast_topics[term]["podcasts"].append(podcast["name"][:40])
+        
+        trending_topics = sorted(
+            [{"topic": k, **v} for k, v in podcast_topics.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+        
+        return {
+            "podcasts": all_podcasts[:limit],
+            "total": len(all_podcasts),
+            "trending_topics": trending_topics,
+            "source": "Apple Podcasts (iTunes API)",
+            "region": "US",
+            "note": "Free API - no key required",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Podcast API error: {str(e)}")
+        return {
+            "podcasts": [],
+            "error": str(e),
+            "message": "Podcast API temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/api/trends/scholar")
+async def get_scholar_trends(
+    topic: str = None,
+    max_results: int = 15
+):
+    """
+    Get trending academic research from Google Scholar (free, no API key!)
+    Uses scholarly library for broader academic research beyond just medical
+    """
+    try:
+        # Note: scholarly can be slow and may get rate limited
+        # We'll use a simpler approach with search queries
+        
+        search_term = topic if topic else "health wellness longevity"
+        
+        # Use scholarly library
+        try:
+            from scholarly import scholarly
+            
+            # Search for publications
+            search_query = scholarly.search_pubs(search_term)
+            
+            articles = []
+            for i, pub in enumerate(search_query):
+                if i >= max_results:
+                    break
+                    
+                bib = pub.get("bib", {})
+                articles.append({
+                    "title": bib.get("title", ""),
+                    "authors": ", ".join(bib.get("author", [])[:3]) + ("..." if len(bib.get("author", [])) > 3 else ""),
+                    "year": bib.get("pub_year", ""),
+                    "venue": bib.get("venue", ""),
+                    "abstract": bib.get("abstract", "")[:300] + "..." if bib.get("abstract") else "",
+                    "citations": pub.get("num_citations", 0),
+                    "url": pub.get("pub_url", ""),
+                    "source": "Google Scholar"
+                })
+            
+            # Extract research topics
+            research_topics = {}
+            topic_terms = [
+                "longevity", "aging", "health", "wellness", "nutrition", "exercise",
+                "sleep", "stress", "mental", "cognitive", "gut", "microbiome",
+                "inflammation", "immune", "hormone", "metabolism", "diet", "fasting"
+            ]
+            
+            for article in articles:
+                text = (article["title"] + " " + article.get("abstract", "")).lower()
+                for term in topic_terms:
+                    if term in text:
+                        if term not in research_topics:
+                            research_topics[term] = {"count": 0, "papers": []}
+                        research_topics[term]["count"] += 1
+                        if len(research_topics[term]["papers"]) < 2:
+                            research_topics[term]["papers"].append(article["title"][:50])
+            
+            trending_research = sorted(
+                [{"topic": k, **v} for k, v in research_topics.items()],
+                key=lambda x: x["count"],
+                reverse=True
+            )[:10]
+            
+            return {
+                "articles": articles,
+                "total": len(articles),
+                "search_term": search_term,
+                "trending_topics": trending_research,
+                "source": "Google Scholar",
+                "note": "Broader academic research - free, no API key",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+        except ImportError:
+            return {
+                "articles": [],
+                "error": "scholarly library not installed",
+                "message": "Google Scholar temporarily unavailable",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+    except Exception as e:
+        logger.error(f"Google Scholar error: {str(e)}")
+        return {
+            "articles": [],
+            "error": str(e),
+            "message": "Google Scholar temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/api/trends/newsletters")
+async def get_newsletter_trends(limit: int = 20):
+    """
+    Get trending health content from Substack and Medium via RSS feeds (free, no API key!)
+    """
+    try:
+        import feedparser
+        
+        # Popular health/wellness Substack and Medium RSS feeds
+        newsletter_feeds = [
+            # Substack health newsletters
+            {"name": "The Huberman Lab", "url": "https://hubermanlab.substack.com/feed", "type": "substack"},
+            {"name": "Examine.com", "url": "https://examine.substack.com/feed", "type": "substack"},
+            {"name": "The Proof", "url": "https://theproof.substack.com/feed", "type": "substack"},
+            # Medium health tags (RSS feeds)
+            {"name": "Medium Health", "url": "https://medium.com/feed/tag/health", "type": "medium"},
+            {"name": "Medium Wellness", "url": "https://medium.com/feed/tag/wellness", "type": "medium"},
+            {"name": "Medium Nutrition", "url": "https://medium.com/feed/tag/nutrition", "type": "medium"},
+            {"name": "Medium Mental Health", "url": "https://medium.com/feed/tag/mental-health", "type": "medium"},
+            {"name": "Medium Fitness", "url": "https://medium.com/feed/tag/fitness", "type": "medium"},
+        ]
+        
+        all_articles = []
+        source_stats = {}
+        
+        for feed_info in newsletter_feeds:
+            try:
+                feed = feedparser.parse(feed_info["url"])
+                posts_from_feed = []
+                
+                for entry in feed.entries[:5]:  # Limit per feed
+                    article = {
+                        "title": entry.get("title", ""),
+                        "author": entry.get("author", feed_info["name"]),
+                        "link": entry.get("link", ""),
+                        "published": entry.get("published", ""),
+                        "summary": entry.get("summary", "")[:200] + "..." if entry.get("summary") else "",
+                        "source": feed_info["name"],
+                        "source_type": feed_info["type"]
+                    }
+                    posts_from_feed.append(article)
+                    all_articles.append(article)
+                
+                source_stats[feed_info["name"]] = {
+                    "articles": len(posts_from_feed),
+                    "status": "online",
+                    "type": feed_info["type"]
+                }
+                
+            except Exception as e:
+                logger.error(f"Newsletter feed error for {feed_info['name']}: {str(e)}")
+                source_stats[feed_info["name"]] = {
+                    "articles": 0,
+                    "status": "error",
+                    "error": str(e)
+                }
+        
+        # Extract trending topics from titles
+        newsletter_topics = {}
+        topic_terms = [
+            "health", "wellness", "longevity", "sleep", "stress", "anxiety",
+            "nutrition", "diet", "fasting", "exercise", "fitness", "weight",
+            "mental", "brain", "gut", "hormone", "aging", "energy", "meditation"
+        ]
+        
+        for article in all_articles:
+            title_lower = article["title"].lower()
+            for term in topic_terms:
+                if term in title_lower:
+                    if term not in newsletter_topics:
+                        newsletter_topics[term] = {"count": 0, "articles": []}
+                    newsletter_topics[term]["count"] += 1
+                    if len(newsletter_topics[term]["articles"]) < 2:
+                        newsletter_topics[term]["articles"].append(article["title"][:50])
+        
+        trending_topics = sorted(
+            [{"topic": k, **v} for k, v in newsletter_topics.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+        
+        return {
+            "articles": all_articles[:limit],
+            "total": len(all_articles),
+            "sources": source_stats,
+            "trending_topics": trending_topics,
+            "source": "Substack & Medium RSS",
+            "note": "Free RSS feeds - no API key required",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except ImportError:
+        return {
+            "articles": [],
+            "error": "feedparser library not installed",
+            "message": "Newsletter feeds temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Newsletter feeds error: {str(e)}")
+        return {
+            "articles": [],
+            "error": str(e),
+            "message": "Newsletter feeds temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @app.get("/api/trends/aggregate")
 async def get_aggregate_trends(timeframe: str = "week"):
     """
-    Get aggregated trends from all sources (Google Trends + YouTube + Reddit + PubMed + News) - US focused
+    Get aggregated trends from ALL sources - US focused
     """
     try:
         # Get Google Trends for top health topics
@@ -1736,6 +2032,57 @@ async def get_trends_source_status():
             "message": "NEWS_API_KEY not configured",
             "region": "US & Global"
         })
+    
+    # Check Podcasts (iTunes API - always available, no key needed)
+    sources_status.append({
+        "id": "podcasts",
+        "name": "Apple Podcasts",
+        "status": "online",
+        "icon": "🎙️",
+        "message": "iTunes API - no key required!",
+        "region": "US"
+    })
+    
+    # Check Google Scholar
+    try:
+        scholarly_spec = importlib.util.find_spec("scholarly")
+        if scholarly_spec is not None:
+            sources_status.append({
+                "id": "scholar",
+                "name": "Google Scholar",
+                "status": "online",
+                "icon": "🎓",
+                "message": "scholarly library available - no key required!",
+                "region": "Global"
+            })
+        else:
+            sources_status.append({
+                "id": "scholar",
+                "name": "Google Scholar",
+                "status": "offline",
+                "icon": "🎓",
+                "message": "scholarly library not installed",
+                "region": "Global"
+            })
+    except:
+        sources_status.append({
+            "id": "scholar",
+            "name": "Google Scholar",
+            "status": "offline",
+            "icon": "🎓",
+            "message": "scholarly library check failed",
+            "region": "Global"
+        })
+    
+    # Check Newsletters (uses feedparser which we already have)
+    sources_status.append({
+        "id": "newsletters",
+        "name": "Substack & Medium",
+        "status": "online",
+        "icon": "✍️",
+        "message": "RSS feeds - no key required!",
+        "region": "Global"
+    })
     
     # Future sources (not yet implemented)
     future_sources = [

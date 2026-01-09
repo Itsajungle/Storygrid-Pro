@@ -154,6 +154,38 @@ interface NewsTopic {
   headlines: string[];
 }
 
+interface Podcast {
+  id: number;
+  name: string;
+  artist: string;
+  artwork: string;
+  genre: string;
+  track_count: number;
+  link: string;
+  rating: number;
+  rating_count: number;
+}
+
+interface ScholarArticle {
+  title: string;
+  authors: string;
+  year: string;
+  venue: string;
+  abstract: string;
+  citations: number;
+  url: string;
+}
+
+interface NewsletterArticle {
+  title: string;
+  author: string;
+  link: string;
+  published: string;
+  summary: string;
+  source: string;
+  source_type: string;
+}
+
 interface TrendDataPoint {
   date: string;
   value: number;
@@ -723,7 +755,7 @@ const Trending = () => {
   const [youtubeTrends, setYoutubeTrends] = useState<YouTubeTrend[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
   const [graphData, setGraphData] = useState<TrendDataPoint[]>([]);
-  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'pubmed' | 'news' | 'sources'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'news' | 'podcasts' | 'newsletters' | 'pubmed' | 'scholar' | 'sources'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
   
@@ -758,6 +790,18 @@ const Trending = () => {
   // News data
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [newsTopics, setNewsTopics] = useState<NewsTopic[]>([]);
+  
+  // Podcasts data
+  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
+  const [podcastTopics, setPodcastTopics] = useState<{topic: string; count: number}[]>([]);
+  
+  // Google Scholar data
+  const [scholarArticles, setScholarArticles] = useState<ScholarArticle[]>([]);
+  const [scholarTopics, setScholarTopics] = useState<{topic: string; count: number}[]>([]);
+  
+  // Newsletter data
+  const [newsletterArticles, setNewsletterArticles] = useState<NewsletterArticle[]>([]);
+  const [newsletterTopics, setNewsletterTopics] = useState<{topic: string; count: number}[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -856,6 +900,48 @@ const Trending = () => {
         if (newsData.articles && newsData.articles.length > 0) {
           setNewsArticles(newsData.articles);
           setNewsTopics(newsData.trending_topics || []);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch Podcasts (iTunes API - free!)
+      const podcastResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/podcasts?limit=20`
+      );
+      
+      if (podcastResponse.ok) {
+        const podcastData = await podcastResponse.json();
+        if (podcastData.podcasts && podcastData.podcasts.length > 0) {
+          setPodcasts(podcastData.podcasts);
+          setPodcastTopics(podcastData.trending_topics || []);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch Google Scholar
+      const scholarResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/scholar?max_results=15`
+      );
+      
+      if (scholarResponse.ok) {
+        const scholarData = await scholarResponse.json();
+        if (scholarData.articles && scholarData.articles.length > 0) {
+          setScholarArticles(scholarData.articles);
+          setScholarTopics(scholarData.trending_topics || []);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch Newsletters (Substack & Medium)
+      const newsletterResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/newsletters?limit=20`
+      );
+      
+      if (newsletterResponse.ok) {
+        const newsletterData = await newsletterResponse.json();
+        if (newsletterData.articles && newsletterData.articles.length > 0) {
+          setNewsletterArticles(newsletterData.articles);
+          setNewsletterTopics(newsletterData.trending_topics || []);
           setUsingRealData(true);
         }
       }
@@ -1384,12 +1470,15 @@ const Trending = () => {
           width: 'fit-content'
         }}>
           {[
-            { key: 'topics', label: 'Trending', icon: TrendingUp },
+            { key: 'topics', label: 'All', icon: TrendingUp },
             { key: 'youtube', label: 'YouTube', icon: Youtube },
             { key: 'reddit', label: 'Reddit', icon: MessageSquare },
             { key: 'news', label: 'News', icon: Newspaper },
-            { key: 'pubmed', label: 'Research', icon: BookOpen },
-            { key: 'sources', label: 'Sources', icon: Database },
+            { key: 'podcasts', label: 'Podcasts', icon: Radio },
+            { key: 'newsletters', label: 'Newsletters', icon: BookOpen },
+            { key: 'pubmed', label: 'PubMed', icon: Database },
+            { key: 'scholar', label: 'Scholar', icon: Globe },
+            { key: 'sources', label: 'Status', icon: CheckCircle },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -2337,6 +2426,349 @@ const Trending = () => {
                   <CheckCircle size={16} />
                   News API • Healthline, WebMD, Medical News Today, Health.com, Mind Body Green, Well+Good
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'podcasts' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🎙️ Trending Health & Wellness Podcasts
+              {podcasts.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live Data
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending Podcast Topics */}
+            {podcastTopics.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(155, 89, 182, 0.2)'
+              }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#1F2937' }}>
+                  🔥 Hot Podcast Topics
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {podcastTopics.map((topic, idx) => (
+                    <div key={topic.topic} style={{
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      background: idx === 0 ? 'linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%)' :
+                                 idx < 3 ? 'rgba(155, 89, 182, 0.15)' : 'rgba(155, 89, 182, 0.08)',
+                      color: idx === 0 ? 'white' : '#9B59B6',
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      textTransform: 'capitalize'
+                    }}>
+                      {topic.topic} <span style={{ opacity: 0.7 }}>({topic.count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Podcast Grid */}
+            {podcasts.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '16px'
+              }}>
+                {podcasts.map((podcast, idx) => (
+                  <a
+                    key={podcast.id}
+                    href={podcast.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      padding: '16px',
+                      border: '1px solid rgba(155, 89, 182, 0.15)',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      gap: '14px',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    {podcast.artwork && (
+                      <img 
+                        src={podcast.artwork} 
+                        alt={podcast.name}
+                        style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'cover' }}
+                      />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#1F2937', marginBottom: '4px', lineHeight: '1.3' }}>
+                        {podcast.name}
+                      </h3>
+                      <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px' }}>{podcast.artist}</p>
+                      <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: '6px', background: 'rgba(155, 89, 182, 0.1)', color: '#9B59B6' }}>
+                          {podcast.genre}
+                        </span>
+                        {podcast.rating > 0 && (
+                          <span style={{ color: '#F59E0B' }}>★ {podcast.rating.toFixed(1)}</span>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280', background: 'rgba(255, 255, 255, 0.9)', borderRadius: '16px' }}>
+                <Radio size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading podcasts...</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'newsletters' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              ✍️ Substack & Medium Health Content
+              {newsletterArticles.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live RSS
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending Newsletter Topics */}
+            {newsletterTopics.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(255, 107, 0, 0.2)'
+              }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#1F2937' }}>
+                  🔥 Trending in Newsletters
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {newsletterTopics.map((topic, idx) => (
+                    <div key={topic.topic} style={{
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      background: idx === 0 ? 'linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%)' :
+                                 idx < 3 ? 'rgba(255, 107, 0, 0.15)' : 'rgba(255, 107, 0, 0.08)',
+                      color: idx === 0 ? 'white' : '#FF6B00',
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      textTransform: 'capitalize'
+                    }}>
+                      {topic.topic} <span style={{ opacity: 0.7 }}>({topic.count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Newsletter Articles */}
+            {newsletterArticles.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {newsletterArticles.map((article, idx) => (
+                  <a
+                    key={idx}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      padding: '18px',
+                      border: '1px solid rgba(255, 107, 0, 0.15)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: article.source_type === 'substack' ? '#FF6B00' : '#000',
+                        color: 'white',
+                        fontSize: '11px',
+                        fontWeight: '700'
+                      }}>
+                        {article.source}
+                      </span>
+                      <span style={{ fontSize: '12px', color: '#9CA3AF' }}>by {article.author}</span>
+                    </div>
+                    <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937', marginBottom: '8px', lineHeight: '1.4' }}>
+                      {article.title}
+                    </h3>
+                    {article.summary && (
+                      <p style={{ fontSize: '13px', color: '#6B7280', lineHeight: '1.5' }}>{article.summary}</p>
+                    )}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280', background: 'rgba(255, 255, 255, 0.9)', borderRadius: '16px' }}>
+                <BookOpen size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading newsletters...</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'scholar' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🎓 Google Scholar Research
+              {scholarArticles.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live Data
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending Scholar Topics */}
+            {scholarTopics.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(66, 133, 244, 0.2)'
+              }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: '#1F2937' }}>
+                  📊 Research Focus Areas
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {scholarTopics.map((topic, idx) => (
+                    <div key={topic.topic} style={{
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      background: idx === 0 ? 'linear-gradient(135deg, #4285F4 0%, #5C9CFF 100%)' :
+                                 idx < 3 ? 'rgba(66, 133, 244, 0.15)' : 'rgba(66, 133, 244, 0.08)',
+                      color: idx === 0 ? 'white' : '#4285F4',
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      textTransform: 'capitalize'
+                    }}>
+                      {topic.topic} <span style={{ opacity: 0.7 }}>({topic.count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Scholar Articles */}
+            {scholarArticles.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {scholarArticles.map((article, idx) => (
+                  <a
+                    key={idx}
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      padding: '18px',
+                      border: '1px solid rgba(66, 133, 244, 0.15)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937', marginBottom: '8px', lineHeight: '1.4' }}>
+                      {article.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '8px' }}>{article.authors}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '12px' }}>
+                      {article.year && (
+                        <span style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(66, 133, 244, 0.1)', color: '#4285F4', fontWeight: '600' }}>
+                          {article.year}
+                        </span>
+                      )}
+                      {article.venue && (
+                        <span style={{ color: '#9CA3AF' }}>{article.venue}</span>
+                      )}
+                      {article.citations > 0 && (
+                        <span style={{ color: '#F59E0B', fontWeight: '600' }}>📚 {article.citations} citations</span>
+                      )}
+                    </div>
+                    {article.abstract && (
+                      <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '10px', lineHeight: '1.5' }}>{article.abstract}</p>
+                    )}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280', background: 'rgba(255, 255, 255, 0.9)', borderRadius: '16px' }}>
+                <Globe size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading research...</p>
+                <p>Note: Google Scholar may be slow to load</p>
               </div>
             )}
           </div>
