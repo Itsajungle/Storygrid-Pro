@@ -125,10 +125,10 @@ const ContentHub = () => {
 
   const markRecommendationDone = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}/apply`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'applied' })
+        body: JSON.stringify({ status: 'completed' })
       });
       if (response.ok) {
         setRecommendations(prev => prev.filter(r => r.id !== id));
@@ -140,8 +140,8 @@ const ContentHub = () => {
 
   const dismissRecommendation = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}/dismiss`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'dismissed' })
       });
@@ -206,15 +206,15 @@ const ContentHub = () => {
 
   const apps = [
     {
-      title: 'IAJ Social Media',
-      description: 'Complete AI-powered social media automation system',
-      link: 'https://web-production-29982.up.railway.app/dashboard',
-      external: true
-    },
-    {
       title: 'AI Agent Training',
       description: 'Train and configure AI agents for content analysis',
       link: 'https://web-production-29982.up.railway.app/api/agent-training',
+      external: true
+    },
+    {
+      title: 'Trending',
+      description: 'Discover trending topics and optimize content timing',
+      link: 'https://web-production-29982.up.railway.app/dashboard',
       external: true
     },
     {
@@ -222,6 +222,12 @@ const ContentHub = () => {
       description: 'Process YouTube videos with Vizard AI',
       link: 'https://web-production-29982.up.railway.app/api/video-processor/dashboard',
       external: true
+    },
+    {
+      title: 'Video Library',
+      description: 'Track and manage all video content',
+      link: '/video-library',
+      external: false
     },
     {
       title: 'Social Studio',
@@ -234,6 +240,12 @@ const ContentHub = () => {
       description: 'Generate 7 posts at once with AI topic suggestions',
       link: 'https://web-production-29982.up.railway.app/api/social-studio/batch',
       external: true
+    },
+    {
+      title: 'RTÉ Articles',
+      description: 'Generate article angles for RTÉ publication',
+      link: '/rte-articles',
+      external: false
     },
     {
       title: 'Analytics',

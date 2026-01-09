@@ -2,14 +2,16 @@ import React from 'react';
 import { useDragReorder } from '@/hooks/useDragReorder';
 import { GripVertical } from 'lucide-react';
 
+interface DragItem {
+  id: string;
+  title: string;
+  sequence?: number;
+  [key: string]: unknown;
+}
+
 interface DragReorderContainerProps {
-  items: Array<{
-    id: string;
-    title: string;
-    sequence?: number;
-    [key: string]: any;
-  }>;
-  children: (item: any, index: number, isDragging: boolean) => React.ReactNode;
+  items: DragItem[];
+  children: (item: DragItem, index: number, isDragging: boolean) => React.ReactNode;
   className?: string;
 }
 

@@ -11,6 +11,8 @@ import StoryGridApp from "./pages/StoryGridApp";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import SystemMonitor from "./pages/SystemMonitor";
+import VideoLibrary from "./pages/VideoLibrary";
+import RTEArticles from "./pages/RTEArticles";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <SystemMonitor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/video-library"
+              element={
+                <ProtectedRoute>
+                  <VideoLibrary />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rte-articles"
+              element={
+                <ProtectedRoute>
+                  <RTEArticles />
                 </ProtectedRoute>
               }
             />

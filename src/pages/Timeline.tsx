@@ -1,6 +1,6 @@
 import { useStore } from '../stores/useStore';
 import { Plus, Trash2, Calendar } from 'lucide-react';
-import { generateId, formatDate, getStatusColor } from '../lib/utils';
+import { generateId, formatDate } from '../lib/utils';
 import { useState } from 'react';
 import { TaskStatus, TaskPriority } from '../types';
 

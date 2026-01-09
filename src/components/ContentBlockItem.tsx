@@ -7,8 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { contentBlockTypes } from '@/components/stages/ideate/constants';
 import { ContentBlock, useContentBlocks } from '@/contexts/ContentBlocksContext';
-import { MessageCircle, Pencil, X, Check, Pin, Radio, Circle, Send, RefreshCcw, ArrowRight } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MessageCircle, Pencil, X, Check, Circle, RefreshCcw, ArrowRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ContentBlockItemProps {
   block: ContentBlock;
@@ -216,9 +216,9 @@ const ContentBlockItem: React.FC<ContentBlockItemProps> = ({ block, onRemove, sh
                 onChange={(e) => handleNotesChange(e.target.value)}
               />
               <div className="flex items-center justify-between">
-                <Select 
+                <Select
                   defaultValue={block.status || 'draft'}
-                  onValueChange={(value) => handleStatusChange(value as any)}
+                  onValueChange={(value) => handleStatusChange(value as 'draft' | 'needs-review' | 'approved')}
                 >
                   <SelectTrigger className="w-32 h-8 text-xs">
                     <SelectValue placeholder="Status" />

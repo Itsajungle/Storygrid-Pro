@@ -1,5 +1,5 @@
 
-import { FactCheckResult, VeracityType, SourceReference } from '@/types/veracity';
+import { FactCheckResult } from '@/types/veracity';
 import { v4 as uuidv4 } from 'uuid';
 
 // Confidence level ratings for fact checking (0-100)

@@ -19,11 +19,6 @@ const ContentBlockList: React.FC<ContentBlockListProps> = ({
   showSequenceNumbers = true,
   allowReordering = true
 }) => {
-  const getBlockColor = (type: string) => {
-    const blockType = contentBlockTypes.find(t => t.type === type);
-    return blockType?.color || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'draft': return 'bg-gray-600 text-white border-gray-600';

@@ -170,7 +170,7 @@ const SystemHealthMonitor: React.FC = () => {
       } else {
         showToast('No new insights');
       }
-    } catch (err) {
+    } catch (_err) {
       showToast('Analysis failed');
     } finally {
       setGenerating(false);
@@ -179,24 +179,24 @@ const SystemHealthMonitor: React.FC = () => {
 
   const markRecommendationDone = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}/apply`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'applied' })
+        body: JSON.stringify({ status: 'completed' })
       });
       if (response.ok) {
         setRecommendations(prev => prev.filter(r => r.id !== id));
         showToast('Done');
       }
-    } catch (err) {
+    } catch (_err) {
       showToast('Failed');
     }
   };
 
   const dismissRecommendation = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/recommendations/${id}/dismiss`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/recommendations/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'dismissed' })
       });
@@ -204,7 +204,7 @@ const SystemHealthMonitor: React.FC = () => {
         setRecommendations(prev => prev.filter(r => r.id !== id));
         showToast('Dismissed');
       }
-    } catch (err) {
+    } catch (_err) {
       showToast('Failed');
     }
   };

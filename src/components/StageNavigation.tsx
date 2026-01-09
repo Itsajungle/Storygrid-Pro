@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Lightbulb, BarChart, FileText, Search, Calendar, Settings, LogOut, Activity } from 'lucide-react';
 import GlobalFactCheckToggle from './GlobalFactCheckToggle';
 import { ProjectSelector } from './ProjectSelector';

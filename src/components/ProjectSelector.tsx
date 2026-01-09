@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FolderOpen, Plus, ChevronDown } from 'lucide-react';
+import { FolderOpen, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const ProjectSelector: React.FC = () => {

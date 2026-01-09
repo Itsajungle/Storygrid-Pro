@@ -29,9 +29,7 @@ const VeracityStage = () => {
   const [isToneCheckEnabled, setIsToneCheckEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'script' | 'flags' | 'export'>('script');
-  const [citationStyle, setCitationStyle] = useState<CitationStyle>(
-    () => (localStorage.getItem('preferredCitationStyle') as CitationStyle) || 'inline'
-  );
+  const citationStyle: CitationStyle = (localStorage.getItem('preferredCitationStyle') as CitationStyle) || 'inline';
 
   // Use the scriptBlocks directly from context or filter contentBlocks for blocks with notes or description
   const verifiableBlocks = scriptBlocks.length > 0 
@@ -89,11 +87,6 @@ const VeracityStage = () => {
       handleFactCheck();
     }
   }, [isToneCheckEnabled]);
-  
-  // Save citation style preference when it changes
-  useEffect(() => {
-    localStorage.setItem('preferredCitationStyle', citationStyle);
-  }, [citationStyle]);
 
   const handleFactCheck = async () => {
     if (!currentContent) return;

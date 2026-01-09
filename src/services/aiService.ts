@@ -39,7 +39,7 @@ export const callChatGPT = async (prompt: string, conversationHistory: Array<{ro
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      await response.json().catch(() => ({}));
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 

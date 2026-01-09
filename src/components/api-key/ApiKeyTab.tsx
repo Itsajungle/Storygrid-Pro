@@ -4,8 +4,7 @@ import { ApiKeyTabProps } from './types';
 import KeyDisplaySection from './KeyDisplaySection';
 import KeyInputSection from './KeyInputSection';
 import KeyActionButtons from './KeyActionButtons';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ApiKeyTab: React.FC<ApiKeyTabProps> = ({
@@ -58,7 +57,7 @@ const ApiKeyTab: React.FC<ApiKeyTabProps> = ({
       console.log('API key starts with:', apiKey?.substring(0, 10));
       
       // Test with a simple prompt
-      const response = await callAI(provider as any, 'Say "test successful" if you can read this.', []);
+      const response = await callAI(provider as 'chatgpt' | 'claude' | 'gemini' | 'perplexity', 'Say "test successful" if you can read this.', []);
       
       console.log('Response received:', response);
       
@@ -67,14 +66,14 @@ const ApiKeyTab: React.FC<ApiKeyTabProps> = ({
         message: 'Connection successful! API key is working.'
       });
       toast.success(`${keyLabel} API key is working!`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Test connection error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
       });
-      const errorMessage = error.message || 'Unknown error';
       setTestResult({
         success: false,
         message: errorMessage

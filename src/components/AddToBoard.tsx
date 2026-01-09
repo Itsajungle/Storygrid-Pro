@@ -31,7 +31,7 @@ const AddToBoard: React.FC<AddToBoardProps> = ({ content, source }) => {
 
   const handleAdd = () => {
     addContentBlock({
-      type: blockType as any,
+      type: blockType,
       title,
       description,
       duration,

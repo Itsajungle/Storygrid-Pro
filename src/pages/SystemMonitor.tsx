@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Activity, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   RefreshCw,
   Lightbulb,
@@ -22,38 +21,39 @@ import { useNavigate } from "react-router-dom";
 const MANAGEMENT_HUB_URL = "https://management-hub-production-80d6.up.railway.app";
 
 interface SystemHealth {
-  overall_health: string; // Format: "5/6"
-  systems: Record<string, {
-    name: string;
+  overall_status: string;
+  systems: Array<{
+    app_name: string;
     status: string;
-    response_time_ms?: number;
-    last_check?: string;
-    priority: string;
+    response_time_ms: number;
+    last_check: string;
   }>;
-  timestamp: string;
-  cached?: boolean;
+  critical_count: number;
+  warning_count: number;
+  healthy_count: number;
 }
 
 interface Recommendation {
-  id: string | number;
-  system_name: string;
-  recommendation_type: string;
+  id: string;
+  app_name: string;
+  category: string;
   priority: string;
   title: string;
   description: string;
-  actionable: boolean;
-  status: string;
+  impact_score: number;
+  confidence_score: number;
+  recommended_action: string;
   created_at: string;
+  status: string;
 }
 
 interface PerformanceMetric {
-  name: string;
+  app_name: string;
+  avg_response_time: number;
+  max_response_time: number;
+  uptime_percentage: number;
+  error_rate: number;
   total_checks: number;
-  healthy_checks: number;
-  uptime_24h: number;
-  avg_response_time?: number;
-  min_response_time?: number;
-  max_response_time?: number;
 }
 
 export default function SystemMonitor() {
@@ -67,54 +67,39 @@ export default function SystemMonitor() {
   const [error, setError] = useState<string | null>(null);
   const [processingRec, setProcessingRec] = useState<string | null>(null);
 
-  // Removed redirect - handled in render instead
+  // Access control - only allow itsajungletv@gmail.com
+  useEffect(() => {
+    if (!user || user.email !== 'itsajungletv@gmail.com') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('Fetching from Management Hub:', MANAGEMENT_HUB_URL);
-      
       // Fetch health overview
       const healthResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/health/overview`);
-      console.log('Health response:', healthResponse.status, healthResponse.ok);
       if (healthResponse.ok) {
         const healthJson = await healthResponse.json();
-        console.log('Health data:', healthJson);
         setHealthData(healthJson);
-      } else {
-        console.error('Health fetch failed:', healthResponse.status, healthResponse.statusText);
       }
 
       // Fetch recommendations
       const recsResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/recommendations?status=pending&limit=10`);
-      console.log('Recommendations response:', recsResponse.status, recsResponse.ok);
       if (recsResponse.ok) {
         const recsJson = await recsResponse.json();
-        console.log('Recommendations data:', recsJson);
         setRecommendations(recsJson.recommendations || []);
-      } else {
-        console.error('Recommendations fetch failed:', recsResponse.status, recsResponse.statusText);
       }
 
       // Fetch performance metrics
       const metricsResponse = await fetch(`${MANAGEMENT_HUB_URL}/api/metrics/performance?hours=24`);
-      console.log('Metrics response:', metricsResponse.status, metricsResponse.ok);
       if (metricsResponse.ok) {
         const metricsJson = await metricsResponse.json();
-        console.log('Metrics data:', metricsJson);
-        // Convert object to array
-        const metricsArray = Object.entries(metricsJson.systems || {}).map(([key, data]: [string, any]) => ({
-          ...data,
-          key
-        }));
-        setMetrics(metricsArray);
-      } else {
-        console.error('Metrics fetch failed:', metricsResponse.status, metricsResponse.statusText);
+        setMetrics(metricsJson.metrics || []);
       }
     } catch (err) {
-      console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
@@ -273,28 +258,8 @@ export default function SystemMonitor() {
     );
   };
 
-  if (!user) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>Please log in to access the System Monitor.</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (user.email !== 'itsajungletv@gmail.com') {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Access Denied. This page is restricted to authorized users only. (Logged in as: {user.email})
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+  if (!user || user.email !== 'itsajungletv@gmail.com') {
+    return null;
   }
 
   return (
@@ -326,26 +291,44 @@ export default function SystemMonitor() {
 
       {/* System Health Overview */}
       {healthData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Overall Health</CardTitle>
-              <Activity className="h-5 w-5 text-blue-500" />
+              <CardTitle className="text-sm font-medium">Overall Status</CardTitle>
+              {getStatusIcon(healthData.overall_status)}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{healthData.overall_health || 'N/A'}</div>
-              <p className="text-xs text-gray-500">Systems operational</p>
+              <div className="text-2xl font-bold">{healthData.overall_status}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Systems</CardTitle>
+              <CardTitle className="text-sm font-medium">Healthy Systems</CardTitle>
               <CheckCircle className="h-5 w-5 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{Object.keys(healthData.systems || {}).length}</div>
-              <p className="text-xs text-gray-500">Monitored services</p>
+              <div className="text-2xl font-bold">{healthData.healthy_count}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Warnings</CardTitle>
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{healthData.warning_count}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
+              <XCircle className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{healthData.critical_count}</div>
             </CardContent>
           </Card>
         </div>
@@ -367,27 +350,25 @@ export default function SystemMonitor() {
               <CardDescription>Real-time health status of all IAJ systems</CardDescription>
             </CardHeader>
             <CardContent>
-              {healthData && Object.keys(healthData.systems).length > 0 ? (
+              {healthData && healthData.systems.length > 0 ? (
                 <div className="space-y-4">
-                  {Object.entries(healthData.systems).map(([key, system]) => (
-                    <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
+                  {healthData.systems.map((system, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-4">
                         {getStatusIcon(system.status)}
                         <div>
-                          <h3 className="font-semibold">{system.name}</h3>
+                          <h3 className="font-semibold">{system.app_name}</h3>
                           <p className="text-sm text-gray-500">
-                            {system.response_time_ms ? `Response time: ${system.response_time_ms}ms` : 'No response data'}
+                            Response time: {system.response_time_ms}ms
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         {getStatusBadge(system.status)}
-                        {system.last_check && (
-                          <p className="text-sm text-gray-500">
-                            <Clock className="inline h-4 w-4 mr-1" />
-                            {new Date(system.last_check).toLocaleTimeString()}
-                          </p>
-                        )}
+                        <p className="text-sm text-gray-500">
+                          <Clock className="inline h-4 w-4 mr-1" />
+                          {new Date(system.last_check).toLocaleTimeString()}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -416,31 +397,36 @@ export default function SystemMonitor() {
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="font-semibold">{rec.title}</h3>
                             {getPriorityBadge(rec.priority)}
-                            <Badge variant="outline">{rec.recommendation_type}</Badge>
+                            <Badge variant="outline">{rec.category}</Badge>
                           </div>
                           <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>{rec.system_name}</span>
-                            <span>Status: {rec.status}</span>
+                            <span>Impact: {rec.impact_score}/10</span>
+                            <span>Confidence: {rec.confidence_score}/10</span>
+                            <span>{rec.app_name}</span>
                           </div>
                         </div>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded">
+                        <p className="text-sm font-medium text-blue-900 mb-1">Recommended Action:</p>
+                        <p className="text-sm text-blue-800">{rec.recommended_action}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
                           variant="default"
-                          onClick={() => applyRecommendation(String(rec.id), rec.title)}
-                          disabled={processingRec === String(rec.id)}
+                          onClick={() => applyRecommendation(rec.id, rec.title)}
+                          disabled={processingRec === rec.id}
                         >
-                          {processingRec === String(rec.id) ? 'Applying...' : 'Apply Recommendation'}
+                          {processingRec === rec.id ? 'Applying...' : 'Apply Recommendation'}
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => dismissRecommendation(String(rec.id), rec.title)}
-                          disabled={processingRec === String(rec.id)}
+                          onClick={() => dismissRecommendation(rec.id, rec.title)}
+                          disabled={processingRec === rec.id}
                         >
-                          {processingRec === String(rec.id) ? 'Dismissing...' : 'Dismiss'}
+                          {processingRec === rec.id ? 'Dismissing...' : 'Dismiss'}
                         </Button>
                         <Button size="sm" variant="ghost">View Details</Button>
                       </div>
@@ -472,19 +458,23 @@ export default function SystemMonitor() {
                 <div className="space-y-4">
                   {metrics.map((metric, index) => (
                     <div key={index} className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-3">{metric.name}</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <h3 className="font-semibold mb-3">{metric.app_name}</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div>
                           <p className="text-sm text-gray-500">Avg Response Time</p>
-                          <p className="text-lg font-semibold">{metric.avg_response_time || 'N/A'}ms</p>
+                          <p className="text-lg font-semibold">{metric.avg_response_time}ms</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Max Response Time</p>
-                          <p className="text-lg font-semibold">{metric.max_response_time || 'N/A'}ms</p>
+                          <p className="text-lg font-semibold">{metric.max_response_time}ms</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Uptime (24h)</p>
-                          <p className="text-lg font-semibold">{metric.uptime_24h?.toFixed(2) || 'N/A'}%</p>
+                          <p className="text-sm text-gray-500">Uptime</p>
+                          <p className="text-lg font-semibold">{metric.uptime_percentage.toFixed(2)}%</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Error Rate</p>
+                          <p className="text-lg font-semibold">{metric.error_rate.toFixed(2)}%</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Total Checks</p>

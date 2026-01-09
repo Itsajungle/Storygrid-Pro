@@ -99,7 +99,7 @@ const StoryArcStage: React.FC = () => {
   // Use custom hooks
   const { insights, runningAnalysis, runAIAnalysis } = useStoryAnalysis();
   const storyMetrics = useStoryMetrics(storyBlocks, structure, structures);
-  const { generateSegmentSuggestions, isGenerating } = useAISuggestions();
+  const { generateSegmentSuggestions } = useAISuggestions();
   
   // Load content blocks from context and assign positions
   useEffect(() => {

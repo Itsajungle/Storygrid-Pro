@@ -78,7 +78,7 @@ Make it engaging, professional, and appropriate for the content type.`;
           };
           scriptManagement.setCurrentScript(updatedScript);
         }
-      } catch (error) {
+      } catch (_error) {
         // Error handling is done in the hook
       }
     }

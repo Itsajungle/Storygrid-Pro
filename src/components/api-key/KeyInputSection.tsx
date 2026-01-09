@@ -24,7 +24,6 @@ const KeyInputSection: React.FC<KeyInputSectionProps> = ({
   onInputChange,
   showKey,
   onToggleShow,
-  isEditing = false
 }) => {
   return (
     <div className="space-y-2">
