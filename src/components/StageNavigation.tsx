@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lightbulb, BarChart, FileText, Search, Calendar, Settings, LogOut, Activity } from 'lucide-react';
+import { Lightbulb, BarChart, FileText, Search, Calendar, Settings, LogOut, Activity, ArrowLeft } from 'lucide-react';
 import GlobalFactCheckToggle from './GlobalFactCheckToggle';
 import { ProjectSelector } from './ProjectSelector';
 import { useAuth } from '@/contexts/AuthContext';
@@ -118,6 +118,20 @@ const StageNavigation: React.FC<StageNavigationProps> = ({
           <ProjectSelector />
           <GlobalFactCheckToggle />
           
+          {/* Back to Content Hub Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 rounded-full font-medium transition-all duration-200 hover:scale-[1.02] flex items-center"
+            style={{
+              background: 'rgba(234, 88, 12, 0.1)',
+              color: '#EA580C',
+              border: '1px solid rgba(234, 88, 12, 0.2)',
+            }}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Content Hub
+          </button>
+
           {/* System Monitor - Only visible to admin */}
           {user?.email === 'itsajungletv@gmail.com' && (
             <button
