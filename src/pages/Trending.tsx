@@ -1309,6 +1309,58 @@ const Trending = () => {
         </div>
       </div>
 
+      {/* Understanding the Data - Help Section */}
+      <div style={{ padding: '0 60px 20px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.1) 0%, rgba(249, 115, 22, 0.05) 100%)',
+          border: '2px solid rgba(234, 88, 12, 0.2)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          display: 'flex',
+          gap: '20px',
+          alignItems: 'flex-start'
+        }}>
+          <div style={{ fontSize: '32px' }}>💡</div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '16px',
+              fontWeight: '700',
+              color: '#1F2937',
+              marginBottom: '12px'
+            }}>
+              Understanding Your Trend Data
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', fontSize: '14px', color: '#374151' }}>
+              <div>
+                <strong style={{ color: '#10B981' }}>+170% ↑</strong> = Growing interest! 
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                  70% more searches than previous period
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: '#EF4444' }}>-25% ↓</strong> = Declining interest
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                  25% fewer searches than before
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: '#EA580C' }}>Search Volume</strong> = Total searches
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                  Higher = more people searching
+                </div>
+              </div>
+              <div>
+                <strong style={{ color: '#7C3AED' }}>Click any topic</strong> to see sources
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>
+                  Links to Reddit posts, videos, articles
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Time Filters & Category */}
       <div style={{ padding: '0 60px 20px' }}>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1616,20 +1668,32 @@ const Trending = () => {
                           </div>
                         </div>
                         
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '8px 12px',
-                          borderRadius: '10px',
-                          background: topic.trend === 'up' ? 'rgba(16, 185, 129, 0.1)' : 
-                                     topic.trend === 'down' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(107, 114, 128, 0.1)',
-                          color: getTrendColor(topic.trend),
-                          fontWeight: '700',
-                          fontSize: '14px'
-                        }}>
-                          {getTrendIcon(topic.trend)}
-                          {topic.changePercent > 0 ? '+' : ''}{topic.changePercent}%
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '8px 12px',
+                            borderRadius: '10px',
+                            background: topic.trend === 'up' ? 'rgba(16, 185, 129, 0.1)' : 
+                                       topic.trend === 'down' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                            color: getTrendColor(topic.trend),
+                            fontWeight: '700',
+                            fontSize: '18px',
+                            justifyContent: 'center',
+                            minWidth: '90px'
+                          }}>
+                            {getTrendIcon(topic.trend)}
+                            {topic.changePercent > 0 ? '+' : ''}{topic.changePercent}%
+                          </div>
+                          <div style={{
+                            fontSize: '11px',
+                            color: '#6B7280',
+                            marginTop: '4px',
+                            fontWeight: '600'
+                          }}>
+                            {topic.trend === 'up' ? '📈 Growing' : topic.trend === 'down' ? '📉 Declining' : '➡️ Stable'}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1774,7 +1838,7 @@ const Trending = () => {
                 </div>
 
                 {/* Related Terms */}
-                <div style={{ marginBottom: '16px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <div style={{
                     fontSize: '12px',
                     fontWeight: '700',
@@ -1803,6 +1867,167 @@ const Trending = () => {
                         {term}
                       </span>
                     ))}
+                  </div>
+                </div>
+
+                {/* View Sources - Clickable Links */}
+                <div style={{
+                  borderTop: '1px solid rgba(0,0,0,0.1)',
+                  paddingTop: '16px',
+                  marginTop: '4px'
+                }}>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: '#6B7280',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <ExternalLink size={14} />
+                    VIEW ORIGINAL SOURCES
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* Google Search */}
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent(selectedTopic.topic + ' health wellness')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: 'rgba(234, 88, 12, 0.05)',
+                        border: '1px solid rgba(234, 88, 12, 0.2)',
+                        textDecoration: 'none',
+                        color: '#EA580C',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(234, 88, 12, 0.1)';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(234, 88, 12, 0.05)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      🔍 Google Search
+                      <ArrowUpRight size={14} style={{ marginLeft: 'auto' }} />
+                    </a>
+
+                    {/* YouTube Search */}
+                    <a
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(selectedTopic.topic)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: 'rgba(255, 0, 0, 0.05)',
+                        border: '1px solid rgba(255, 0, 0, 0.2)',
+                        textDecoration: 'none',
+                        color: '#FF0000',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 0, 0, 0.1)';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 0, 0, 0.05)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      📺 YouTube Videos
+                      <ArrowUpRight size={14} style={{ marginLeft: 'auto' }} />
+                    </a>
+
+                    {/* Reddit Search */}
+                    <a
+                      href={`https://www.reddit.com/search/?q=${encodeURIComponent(selectedTopic.topic)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: 'rgba(255, 69, 0, 0.05)',
+                        border: '1px solid rgba(255, 69, 0, 0.2)',
+                        textDecoration: 'none',
+                        color: '#FF4500',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 69, 0, 0.1)';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 69, 0, 0.05)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      🔴 Reddit Discussions
+                      <ArrowUpRight size={14} style={{ marginLeft: 'auto' }} />
+                    </a>
+
+                    {/* PubMed Research */}
+                    <a
+                      href={`https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(selectedTopic.topic)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        background: 'rgba(59, 130, 246, 0.05)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)',
+                        textDecoration: 'none',
+                        color: '#3B82F6',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      🔬 Research Papers
+                      <ArrowUpRight size={14} style={{ marginLeft: 'auto' }} />
+                    </a>
+                  </div>
+
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    background: 'rgba(124, 58, 237, 0.05)',
+                    fontSize: '11px',
+                    color: '#6B7280',
+                    lineHeight: '1.5'
+                  }}>
+                    💡 <strong>Tip:</strong> Click any link to explore real posts, videos, and research about "{selectedTopic.topic}"
                   </div>
                 </div>
               </div>
