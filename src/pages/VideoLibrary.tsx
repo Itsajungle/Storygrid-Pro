@@ -40,7 +40,9 @@ interface VideoItem {
   user_id: string;
   title: string;
   description: string | null;
-  youtube_url: string | null;
+  video_source: 'youtube' | 'vimeo' | 'local' | 'nas';
+  video_url: string | null;
+  youtube_url: string | null; // Legacy field
   youtube_id: string | null;
   duration: number | null;
   duration_formatted: string | null;
@@ -264,7 +266,9 @@ const VideoLibrary = () => {
           user_id: user.id,
           title: newVideo.title,
           description: newVideo.description,
-          youtube_url: newVideo.youtube_url,
+          video_source: newVideo.video_source || 'youtube',
+          video_url: newVideo.video_url,
+          youtube_url: newVideo.video_source === 'youtube' ? newVideo.video_url : null,
           duration_formatted: newVideo.duration_formatted,
           recorded_date: newVideo.recorded_date,
           status: newVideo.status || 'raw',
@@ -293,7 +297,9 @@ const VideoLibrary = () => {
         .update({
           title: updatedVideo.title,
           description: updatedVideo.description,
-          youtube_url: updatedVideo.youtube_url,
+          video_source: updatedVideo.video_source,
+          video_url: updatedVideo.video_url,
+          youtube_url: updatedVideo.video_source === 'youtube' ? updatedVideo.video_url : null,
           duration_formatted: updatedVideo.duration_formatted,
           recorded_date: updatedVideo.recorded_date,
           status: updatedVideo.status,
@@ -1039,10 +1045,10 @@ const VideoLibrary = () => {
 
                   {/* Actions */}
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    {video.youtube_url && (
+                    {(video.video_url || video.youtube_url) && (
                       <a
-                        href={video.youtube_url}
-                        target="_blank"
+                        href={video.video_url || video.youtube_url || '#'}
+                        target={video.video_source === 'local' || video.video_source === 'nas' ? '_self' : '_blank'}
                         rel="noopener noreferrer"
                         style={{
                           flex: 1,
@@ -1052,15 +1058,27 @@ const VideoLibrary = () => {
                           gap: '6px',
                           padding: '10px',
                           borderRadius: '10px',
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          color: '#DC2626',
+                          background: 
+                            video.video_source === 'youtube' ? 'rgba(239, 68, 68, 0.1)' :
+                            video.video_source === 'vimeo' ? 'rgba(30, 130, 200, 0.1)' :
+                            'rgba(107, 114, 128, 0.1)',
+                          color: 
+                            video.video_source === 'youtube' ? '#DC2626' :
+                            video.video_source === 'vimeo' ? '#1E82C8' :
+                            '#6B7280',
                           textDecoration: 'none',
                           fontWeight: '600',
                           fontSize: '13px'
                         }}
                       >
-                        <Youtube size={16} />
-                        YouTube
+                        {video.video_source === 'youtube' && <Youtube size={16} />}
+                        {video.video_source === 'vimeo' && <Film size={16} />}
+                        {video.video_source === 'local' && <Video size={16} />}
+                        {video.video_source === 'nas' && <Video size={16} />}
+                        {video.video_source === 'youtube' && 'YouTube'}
+                        {video.video_source === 'vimeo' && 'Vimeo'}
+                        {video.video_source === 'local' && 'Local File'}
+                        {video.video_source === 'nas' && 'NAS File'}
                       </a>
                     )}
                     <button
@@ -1173,7 +1191,9 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     title: video?.title || '',
     description: video?.description || '',
-    youtube_url: video?.youtube_url || '',
+    video_source: video?.video_source || 'youtube',
+    video_url: video?.video_url || video?.youtube_url || '',
+    youtube_url: video?.youtube_url || '', // Legacy
     duration_formatted: video?.duration_formatted || '',
     recorded_date: video?.recorded_date || new Date().toISOString().split('T')[0],
     status: video?.status || 'raw',
@@ -1266,14 +1286,45 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, onSave, onClose }) => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>YouTube URL</label>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>Video Source *</label>
+              <select
+                value={formData.video_source}
+                onChange={(e) => setFormData({ ...formData, video_source: e.target.value as any })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid #E5E7EB',
+                  fontSize: '15px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="youtube">📺 YouTube</option>
+                <option value="vimeo">🎬 Vimeo</option>
+                <option value="local">💾 Local (Hard Drive)</option>
+                <option value="nas">🗄️ NAS (Network Storage)</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>
+                {formData.video_source === 'youtube' && 'YouTube URL'}
+                {formData.video_source === 'vimeo' && 'Vimeo URL'}
+                {formData.video_source === 'local' && 'File Path (Local)'}
+                {formData.video_source === 'nas' && 'File Path (NAS)'}
+              </label>
               <input
                 type="text"
-                value={formData.youtube_url}
-                onChange={(e) => setFormData({ ...formData, youtube_url: e.target.value })}
-                placeholder="https://youtube.com/watch?v=..."
+                value={formData.video_url}
+                onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                placeholder={
+                  formData.video_source === 'youtube' ? 'https://youtube.com/watch?v=...' :
+                  formData.video_source === 'vimeo' ? 'https://vimeo.com/...' :
+                  formData.video_source === 'local' ? '/Users/susan/Videos/gut-health.mp4' :
+                  '//NAS/Videos/episode-05.mp4'
+                }
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -1283,22 +1334,23 @@ const VideoModal: React.FC<VideoModalProps> = ({ video, onSave, onClose }) => {
                 }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>Duration</label>
-              <input
-                type="text"
-                value={formData.duration_formatted}
-                onChange={(e) => setFormData({ ...formData, duration_formatted: e.target.value })}
-                placeholder="45:32"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '1px solid #E5E7EB',
-                  fontSize: '15px'
-                }}
-              />
-            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>Duration</label>
+            <input
+              type="text"
+              value={formData.duration_formatted}
+              onChange={(e) => setFormData({ ...formData, duration_formatted: e.target.value })}
+              placeholder="45:32"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '10px',
+                border: '1px solid #E5E7EB',
+                fontSize: '15px'
+              }}
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
