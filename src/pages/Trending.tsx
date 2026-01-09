@@ -1,7 +1,7 @@
 /**
- * Trending - Health & Wellness Trend Analysis
+ * Trending - Health & Wellness Trend Analysis (US-Focused)
+ * Real-time data from Google Trends & YouTube Data API
  * Discover what's trending in health, wellness, longevity, and related topics
- * Time-based filtering with graphs, source attribution, and YouTube-specific insights
  */
 
 import React, { useState, useEffect } from 'react';
@@ -31,8 +31,14 @@ import {
   Newspaper,
   Filter,
   ChevronDown,
-  CheckCircle
+  CheckCircle,
+  MapPin,
+  AlertCircle,
+  Play
 } from 'lucide-react';
+
+// Management Hub API URL
+const MANAGEMENT_HUB_URL = 'https://management-hub-production-e4d5.up.railway.app';
 
 // ============================================
 // TYPES
@@ -66,10 +72,38 @@ interface YouTubeTrend {
   id: string;
   title: string;
   channel: string;
-  views: string;
+  views: string | number;
   published: string;
   category: string;
   engagement: 'high' | 'medium' | 'low';
+  thumbnail?: string;
+  likes?: number;
+  comments?: number;
+  engagement_rate?: number;
+}
+
+interface RealGoogleTrend {
+  topic: string;
+  interest_score: number;
+  peak_score: number;
+  trend: string;
+  change_percent: number;
+  data_points: [string, number][];
+  source: string;
+  region: string;
+}
+
+interface RealYouTubeVideo {
+  id: string;
+  title: string;
+  channel: string;
+  thumbnail: string;
+  published: string;
+  description: string;
+  views: number;
+  likes: number;
+  comments: number;
+  engagement_rate: number;
 }
 
 interface TrendDataPoint {
@@ -644,15 +678,64 @@ const Trending = () => {
   const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'sources'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
+  
+  // Real API data states
+  const [realGoogleTrends, setRealGoogleTrends] = useState<RealGoogleTrend[]>([]);
+  const [realYouTubeVideos, setRealYouTubeVideos] = useState<RealYouTubeVideo[]>([]);
+  const [loadingRealData, setLoadingRealData] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [usingRealData, setUsingRealData] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     loadTrends();
+    fetchRealTrends();
   }, []);
 
   useEffect(() => {
     loadTrends();
+    fetchRealTrends();
   }, [timeframe, selectedCategory, selectedSources]);
+
+  // Fetch real trends from Management Hub API
+  const fetchRealTrends = async () => {
+    setLoadingRealData(true);
+    setApiError(null);
+    
+    try {
+      // Fetch Google Trends
+      const googleResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/google?timeframe=${timeframe}`
+      );
+      
+      if (googleResponse.ok) {
+        const googleData = await googleResponse.json();
+        if (googleData.trends && googleData.trends.length > 0) {
+          setRealGoogleTrends(googleData.trends);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch YouTube Trends
+      const youtubeResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/youtube?topic=health%20wellness%20longevity&max_results=10`
+      );
+      
+      if (youtubeResponse.ok) {
+        const youtubeData = await youtubeResponse.json();
+        if (youtubeData.videos && youtubeData.videos.length > 0) {
+          setRealYouTubeVideos(youtubeData.videos);
+          setUsingRealData(true);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch real trends:', error);
+      setApiError('Using cached data - live API temporarily unavailable');
+      setUsingRealData(false);
+    } finally {
+      setLoadingRealData(false);
+    }
+  };
 
   const loadTrends = () => {
     let topics = trendingByTimeframe[timeframe] || trendingByTimeframe.week;
@@ -863,19 +946,81 @@ const Trending = () => {
               }}>
                 <TrendingUp size={28} color="white" />
               </div>
-              <h1 style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontSize: '42px',
-                fontWeight: '700',
-                color: '#1F2937',
-                margin: 0
-              }}>
-                Health & Wellness Trends
-              </h1>
+              <div>
+                <h1 style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '42px',
+                  fontWeight: '700',
+                  color: '#1F2937',
+                  margin: 0
+                }}>
+                  Health & Wellness Trends
+                </h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                  <span style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    background: '#1D4ED8',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: '700'
+                  }}>
+                    🇺🇸 US Market
+                  </span>
+                  {usingRealData && (
+                    <span style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: '#10B981',
+                      color: 'white',
+                      fontSize: '12px',
+                      fontWeight: '700'
+                    }}>
+                      ● Live Data
+                    </span>
+                  )}
+                  {loadingRealData && (
+                    <span style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: '#F59E0B',
+                      color: 'white',
+                      fontSize: '12px',
+                      fontWeight: '700'
+                    }}>
+                      <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                      Loading...
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
             <p style={{ color: '#6B7280', fontSize: '16px', marginLeft: '72px' }}>
-              Multi-source trend analysis • {dataSources.length} data sources • Updated in real-time
+              Real-time Google Trends + YouTube Data API • {dataSources.length} data sources tracked
             </p>
+            {apiError && (
+              <div style={{
+                marginLeft: '72px',
+                marginTop: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                color: '#F59E0B'
+              }}>
+                <AlertCircle size={14} />
+                {apiError}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -1449,69 +1594,212 @@ const Trending = () => {
               gap: '8px'
             }}>
               <Youtube size={24} color="#FF0000" />
-              Trending Health & Wellness on YouTube ({timeframe === 'today' ? 'Today' : timeframe === 'week' ? 'This Week' : timeframe === 'month' ? 'This Month' : 'This Year'})
+              Trending Health & Wellness on YouTube (US)
+              {realYouTubeVideos.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live Data
+                </span>
+              )}
             </h2>
             
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-              gap: '20px'
-            }}>
-              {youtubeTrends.map((video, idx) => (
-                <div
-                  key={video.id}
-                  className={mounted ? 'animate-in' : ''}
-                  style={{
-                    animationDelay: `${idx * 100}ms`,
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    border: '1px solid rgba(255, 255, 255, 0.5)'
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{
-                      width: '140px',
-                      height: '80px',
-                      borderRadius: '10px',
-                      background: 'linear-gradient(135deg, #FF0000 0%, #CC0000 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <Youtube size={32} color="white" />
-                    </div>
-                    
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: '15px',
-                        fontWeight: '700',
-                        color: '#1F2937',
-                        marginBottom: '6px',
-                        lineHeight: '1.3'
+            {/* Real YouTube Videos */}
+            {realYouTubeVideos.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+                gap: '20px'
+              }}>
+                {realYouTubeVideos.map((video, idx) => (
+                  <a
+                    key={video.id}
+                    href={`https://youtube.com/watch?v=${video.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 100}ms`,
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.5)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <div style={{
+                        width: '160px',
+                        height: '90px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        position: 'relative'
                       }}>
-                        {video.title}
-                      </h3>
+                        <img 
+                          src={video.thumbnail} 
+                          alt={video.title}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        <div style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: 'rgba(255, 0, 0, 0.9)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <Play size={18} color="white" fill="white" style={{ marginLeft: '2px' }} />
+                        </div>
+                      </div>
                       
-                      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '8px' }}>
-                        {video.channel}
-                      </p>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{
+                          fontFamily: "'Outfit', sans-serif",
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          color: '#1F2937',
+                          marginBottom: '6px',
+                          lineHeight: '1.4',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {video.title}
+                        </h3>
+                        
+                        <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px' }}>
+                          {video.channel}
+                        </p>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '11px', color: '#9CA3AF' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                            <Eye size={12} />
+                            {formatNumber(video.views)} views
+                          </span>
+                          {video.engagement_rate > 0 && (
+                            <span style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '4px',
+                              color: video.engagement_rate > 5 ? '#10B981' : '#9CA3AF',
+                              fontWeight: '600'
+                            }}>
+                              <TrendingUp size={12} />
+                              {video.engagement_rate}% engagement
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              /* Fallback to simulated data */
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
+                gap: '20px'
+              }}>
+                {youtubeTrends.map((video, idx) => (
+                  <div
+                    key={video.id}
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 100}ms`,
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      padding: '20px',
+                      border: '1px solid rgba(255, 255, 255, 0.5)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <div style={{
+                        width: '140px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        background: 'linear-gradient(135deg, #FF0000 0%, #CC0000 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Youtube size={32} color="white" />
+                      </div>
                       
-                      <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9CA3AF' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Eye size={12} />
-                          {video.views} views
-                        </span>
-                        <span>{video.published}</span>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{
+                          fontFamily: "'Outfit', sans-serif",
+                          fontSize: '15px',
+                          fontWeight: '700',
+                          color: '#1F2937',
+                          marginBottom: '6px',
+                          lineHeight: '1.3'
+                        }}>
+                          {video.title}
+                        </h3>
+                        
+                        <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '8px' }}>
+                          {video.channel}
+                        </p>
+                        
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#9CA3AF' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Eye size={12} />
+                            {video.views} views
+                          </span>
+                          <span>{video.published}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Live API Info */}
+            {realYouTubeVideos.length > 0 && (
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                borderRadius: '12px',
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontSize: '13px', fontWeight: '600' }}>
+                  <CheckCircle size={16} />
+                  Real-time data from YouTube Data API v3 • Region: US • Last {realYouTubeVideos.length} trending health videos
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         )}
 

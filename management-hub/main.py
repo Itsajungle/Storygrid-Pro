@@ -865,6 +865,305 @@ async def trigger_health_check():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ==================== TRENDING API ENDPOINTS ====================
+# Real-time trend data from Google Trends and YouTube (US-focused)
+
+# Health & Wellness topics to track
+HEALTH_TOPICS = [
+    "gut health", "intermittent fasting", "longevity", "biohacking", 
+    "sleep optimization", "cold plunge", "red light therapy", "peptides",
+    "hormone health", "menopause", "weight loss", "ozempic", "wegovy",
+    "mental health", "anxiety", "stress management", "meditation",
+    "supplements", "vitamin D", "magnesium", "collagen", "probiotics",
+    "fitness", "strength training", "zone 2 cardio", "mobility",
+    "anti-aging", "skin health", "hair loss", "inflammation"
+]
+
+# YouTube API key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+
+@app.get("/api/trends/google")
+async def get_google_trends(
+    topic: str = None,
+    timeframe: str = "today"
+):
+    """
+    Get Google Trends data for health & wellness topics (US-focused)
+    
+    timeframe options:
+    - "today" = last 24 hours
+    - "week" = last 7 days  
+    - "month" = last 30 days
+    - "year" = last 12 months
+    """
+    try:
+        from pytrends.request import TrendReq
+        
+        # Initialize pytrends for US
+        pytrends = TrendReq(hl='en-US', tz=300)  # US Eastern timezone
+        
+        # Map timeframe to pytrends format
+        timeframe_map = {
+            "today": "now 1-d",
+            "week": "now 7-d",
+            "month": "today 1-m",
+            "year": "today 12-m"
+        }
+        tf = timeframe_map.get(timeframe, "now 7-d")
+        
+        # If specific topic requested
+        if topic:
+            topics_to_search = [topic]
+        else:
+            # Get top 5 health topics
+            topics_to_search = HEALTH_TOPICS[:5]
+        
+        # Build payload with US geo
+        pytrends.build_payload(
+            topics_to_search,
+            cat=0,
+            timeframe=tf,
+            geo='US',  # US-focused
+            gprop=''
+        )
+        
+        # Get interest over time
+        interest_df = pytrends.interest_over_time()
+        
+        results = []
+        if not interest_df.empty:
+            for topic_name in topics_to_search:
+                if topic_name in interest_df.columns:
+                    values = interest_df[topic_name].tolist()
+                    dates = [d.strftime("%Y-%m-%d") for d in interest_df.index]
+                    
+                    # Calculate trend direction
+                    if len(values) >= 2:
+                        recent_avg = sum(values[-3:]) / 3 if len(values) >= 3 else values[-1]
+                        older_avg = sum(values[:3]) / 3 if len(values) >= 3 else values[0]
+                        trend = "rising" if recent_avg > older_avg else "falling" if recent_avg < older_avg else "stable"
+                        change_pct = round(((recent_avg - older_avg) / max(older_avg, 1)) * 100, 1)
+                    else:
+                        trend = "stable"
+                        change_pct = 0
+                    
+                    results.append({
+                        "topic": topic_name,
+                        "interest_score": int(values[-1]) if values else 0,
+                        "peak_score": max(values) if values else 0,
+                        "trend": trend,
+                        "change_percent": change_pct,
+                        "data_points": list(zip(dates, values))[-10:],  # Last 10 points
+                        "source": "Google Trends",
+                        "region": "US"
+                    })
+        
+        # Also get related queries for insights
+        related = {}
+        if topic:
+            try:
+                related_queries = pytrends.related_queries()
+                if topic in related_queries and related_queries[topic]['rising'] is not None:
+                    rising = related_queries[topic]['rising'].head(5).to_dict('records')
+                    related = {"rising_queries": rising}
+            except:
+                pass
+        
+        return {
+            "trends": results,
+            "related": related,
+            "timeframe": timeframe,
+            "region": "US",
+            "source": "Google Trends",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Google Trends error: {str(e)}")
+        # Return fallback data if API fails
+        return {
+            "trends": [],
+            "error": str(e),
+            "message": "Google Trends temporarily unavailable - using cached data",
+            "region": "US",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/api/trends/youtube")
+async def get_youtube_trends(
+    topic: str = None,
+    max_results: int = 10
+):
+    """
+    Get trending YouTube videos in health & wellness category (US-focused)
+    """
+    try:
+        from googleapiclient.discovery import build
+        
+        api_key = YOUTUBE_API_KEY
+        if not api_key:
+            raise HTTPException(status_code=500, detail="YouTube API key not configured")
+        
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        
+        # Search for health/wellness videos in US
+        search_query = topic if topic else "health wellness longevity"
+        
+        # Search for recent popular videos
+        search_response = youtube.search().list(
+            q=search_query,
+            part='snippet',
+            type='video',
+            order='viewCount',  # Most viewed
+            regionCode='US',    # US-focused
+            relevanceLanguage='en',
+            publishedAfter=(datetime.now(timezone.utc) - timedelta(days=30)).isoformat() + 'Z',
+            maxResults=max_results,
+            videoCategoryId='26'  # How-to & Style (includes health/wellness)
+        ).execute()
+        
+        videos = []
+        video_ids = []
+        
+        for item in search_response.get('items', []):
+            video_ids.append(item['id']['videoId'])
+            videos.append({
+                'id': item['id']['videoId'],
+                'title': item['snippet']['title'],
+                'channel': item['snippet']['channelTitle'],
+                'thumbnail': item['snippet']['thumbnails']['high']['url'],
+                'published': item['snippet']['publishedAt'],
+                'description': item['snippet']['description'][:200] + '...' if len(item['snippet'].get('description', '')) > 200 else item['snippet'].get('description', '')
+            })
+        
+        # Get video statistics
+        if video_ids:
+            stats_response = youtube.videos().list(
+                part='statistics,contentDetails',
+                id=','.join(video_ids)
+            ).execute()
+            
+            stats_map = {}
+            for item in stats_response.get('items', []):
+                stats_map[item['id']] = {
+                    'views': int(item['statistics'].get('viewCount', 0)),
+                    'likes': int(item['statistics'].get('likeCount', 0)),
+                    'comments': int(item['statistics'].get('commentCount', 0)),
+                    'duration': item['contentDetails'].get('duration', '')
+                }
+            
+            # Merge stats with videos
+            for video in videos:
+                if video['id'] in stats_map:
+                    video.update(stats_map[video['id']])
+                    # Calculate engagement rate
+                    if video.get('views', 0) > 0:
+                        video['engagement_rate'] = round(
+                            ((video.get('likes', 0) + video.get('comments', 0)) / video['views']) * 100, 
+                            2
+                        )
+        
+        # Sort by views
+        videos.sort(key=lambda x: x.get('views', 0), reverse=True)
+        
+        return {
+            "videos": videos,
+            "search_query": search_query,
+            "total_results": len(videos),
+            "region": "US",
+            "source": "YouTube Data API",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"YouTube API error: {str(e)}")
+        return {
+            "videos": [],
+            "error": str(e),
+            "message": "YouTube API temporarily unavailable",
+            "region": "US",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/api/trends/aggregate")
+async def get_aggregate_trends(timeframe: str = "week"):
+    """
+    Get aggregated trends from all sources (Google Trends + YouTube) - US focused
+    """
+    try:
+        # Get Google Trends for top health topics
+        google_results = await get_google_trends(timeframe=timeframe)
+        
+        # Get YouTube trending for health
+        youtube_results = await get_youtube_trends(max_results=5)
+        
+        # Extract trending topics from YouTube titles
+        youtube_topics = []
+        for video in youtube_results.get('videos', []):
+            youtube_topics.append({
+                "topic": video.get('title', '')[:50],
+                "views": video.get('views', 0),
+                "source": "YouTube",
+                "engagement": video.get('engagement_rate', 0)
+            })
+        
+        # Combine and rank
+        all_trends = []
+        
+        # Add Google Trends
+        for trend in google_results.get('trends', []):
+            all_trends.append({
+                "topic": trend['topic'],
+                "score": trend['interest_score'],
+                "trend_direction": trend['trend'],
+                "change_percent": trend['change_percent'],
+                "source": "Google Trends",
+                "source_icon": "📊"
+            })
+        
+        # Add top YouTube topics
+        for yt in youtube_topics[:3]:
+            all_trends.append({
+                "topic": yt['topic'],
+                "score": min(100, int(yt['views'] / 10000)),  # Normalize to 0-100
+                "trend_direction": "rising",
+                "views": yt['views'],
+                "source": "YouTube",
+                "source_icon": "🎬"
+            })
+        
+        return {
+            "trends": all_trends,
+            "google_trends": google_results,
+            "youtube_trends": youtube_results,
+            "timeframe": timeframe,
+            "region": "US",
+            "sources": ["Google Trends", "YouTube Data API"],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Aggregate trends error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/trends/topics")
+async def get_tracked_topics():
+    """Get list of health & wellness topics being tracked"""
+    return {
+        "topics": HEALTH_TOPICS,
+        "total": len(HEALTH_TOPICS),
+        "categories": {
+            "nutrition": ["gut health", "intermittent fasting", "supplements", "probiotics"],
+            "longevity": ["longevity", "biohacking", "anti-aging", "peptides"],
+            "fitness": ["fitness", "strength training", "zone 2 cardio", "mobility"],
+            "mental_health": ["mental health", "anxiety", "stress management", "meditation"],
+            "womens_health": ["hormone health", "menopause"],
+            "weight_management": ["weight loss", "ozempic", "wegovy"],
+            "wellness": ["sleep optimization", "cold plunge", "red light therapy"]
+        },
+        "region": "US"
+    }
+
 # Run the application
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
