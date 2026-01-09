@@ -283,17 +283,18 @@ GRANT EXECUTE ON FUNCTION search_videos TO authenticated;
 -- Create analytics view for dashboard
 CREATE OR REPLACE VIEW video_analytics AS
 SELECT 
-  user_id,
+  v.user_id,
   COUNT(*) as total_videos,
-  COUNT(*) FILTER (WHERE status = 'raw') as raw_count,
-  COUNT(*) FILTER (WHERE status = 'edited') as edited_count,
-  COUNT(*) FILTER (WHERE status = 'published') as published_count,
-  COUNT(*) FILTER (WHERE status = 'clipped') as clipped_count,
-  SUM(clips_extracted) as total_clips_extracted,
-  SUM(clips_used) as total_clips_used,
-  ROUND(AVG(duration), 0) as avg_duration_seconds,
-  ARRAY_AGG(DISTINCT unnest) as all_unique_tags
-FROM videos, unnest(tags)
-GROUP BY user_id;
+  COUNT(*) FILTER (WHERE v.status = 'raw') as raw_count,
+  COUNT(*) FILTER (WHERE v.status = 'edited') as edited_count,
+  COUNT(*) FILTER (WHERE v.status = 'published') as published_count,
+  COUNT(*) FILTER (WHERE v.status = 'clipped') as clipped_count,
+  SUM(v.clips_extracted) as total_clips_extracted,
+  SUM(v.clips_used) as total_clips_used,
+  ROUND(AVG(v.duration), 0) as avg_duration_seconds,
+  ARRAY_AGG(DISTINCT t.tag) FILTER (WHERE t.tag IS NOT NULL) as all_unique_tags
+FROM videos v
+LEFT JOIN LATERAL unnest(v.tags) AS t(tag) ON true
+GROUP BY v.user_id;
 
 GRANT SELECT ON video_analytics TO authenticated;
