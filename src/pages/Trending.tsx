@@ -1017,44 +1017,102 @@ const Trending = () => {
         audienceDemo: selectedTopic.audienceDemo
       };
 
-      // Call OpenAI API (you'll need to add this endpoint)
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('openai_api_key') || ''}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [{
-            role: 'system',
-            content: 'You are a health & wellness trend analyst. Provide concise, actionable insights for content creators.'
-          }, {
-            role: 'user',
-            content: `Analyze this health/wellness trend and provide a brief summary (3-4 sentences) covering:
-1. What's driving this trend
+      // Get API keys from localStorage (managed by useApiKeyManager)
+      const openaiKey = localStorage.getItem('VITE_OPENAI_API_KEY');
+      const claudeKey = localStorage.getItem('VITE_ANTHROPIC_API_KEY');
+
+      let summary = '';
+
+      // Try Claude first (cheaper and better for analysis)
+      if (claudeKey && claudeKey.startsWith('sk-ant-')) {
+        console.log('Using Claude API for trend summary');
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': claudeKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 250,
+            messages: [{
+              role: 'user',
+              content: `You are a health & wellness trend analyst helping content creator Susan. Analyze this trend and provide a brief, actionable summary (3-4 sentences):
+
+1. What's driving this trend (be specific about the main source)
 2. Why it matters now
-3. Content opportunity for a health creator
+3. One specific content opportunity for Susan's health/longevity YouTube channel
+
+Trend: ${context.topic}
+Category: ${context.category}
+Change: ${context.changePercent > 0 ? '+' : ''}${context.changePercent}% vs ${timeframe === 'today' ? 'yesterday' : timeframe === 'week' ? 'last week' : timeframe === 'month' ? 'last month' : 'last year'}
+Search Volume: ${context.searchVolume.toLocaleString()}
+Top Source: ${context.sources[0]?.name} (${context.sources[0]?.percentage}%)
+Audience: ${context.audienceDemo}
+Peak Time: ${context.peakTime}
+Related: ${context.relatedTerms.join(', ')}
+
+Be specific, actionable, and focus on what Susan should do next.`
+            }]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          summary = data.content[0].text;
+        } else {
+          throw new Error('Claude API failed');
+        }
+      } 
+      // Fallback to OpenAI
+      else if (openaiKey && openaiKey.startsWith('sk-')) {
+        console.log('Using OpenAI API for trend summary');
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{
+              role: 'system',
+              content: 'You are a health & wellness trend analyst helping content creator Susan. Provide concise, actionable insights.'
+            }, {
+              role: 'user',
+              content: `Analyze this health/wellness trend and provide a brief summary (3-4 sentences):
+1. What's driving this trend (be specific about the main source)
+2. Why it matters now
+3. One specific content opportunity for Susan
 
 Trend data:
 ${JSON.stringify(context, null, 2)}`
-          }],
-          max_tokens: 200,
-          temperature: 0.7
-        })
-      });
+            }],
+            max_tokens: 250,
+            temperature: 0.7
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate AI summary');
+        if (response.ok) {
+          const data = await response.json();
+          summary = data.choices[0].message.content;
+        } else {
+          throw new Error('OpenAI API failed');
+        }
+      } else {
+        throw new Error('No API key found');
       }
 
-      const data = await response.json();
-      const summary = data.choices[0].message.content;
       setAiSummary(summary);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI summary error:', error);
-      setAiSummary('Unable to generate AI summary. Please check your OpenAI API key in settings.');
+      if (error.message === 'No API key found') {
+        setAiSummary('⚠️ No API key found. Please add your OpenAI or Claude API key in Settings → API Keys.');
+      } else {
+        setAiSummary('⚠️ Unable to generate AI summary. Please check your API keys in Settings.');
+      }
     } finally {
       setGeneratingAI(false);
     }

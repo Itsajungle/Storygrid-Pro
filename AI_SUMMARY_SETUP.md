@@ -4,74 +4,41 @@
 
 The "Generate AI Summary" button in the Trending page:
 - Gathers data from ALL sources for a topic
-- Sends it to OpenAI GPT-4
+- Sends it to Claude Sonnet 4 (primary) or OpenAI GPT-4 (fallback)
 - Returns a 3-4 sentence actionable summary covering:
-  1. What's driving this trend
+  1. What's driving this trend (with specific source)
   2. Why it matters now
-  3. Content opportunity for Susan
+  3. One specific content opportunity for Susan
 
-## 🔑 **Setup Required**
+## 🔑 **Setup - ALREADY DONE! ✅**
 
-### **Option 1: User Sets Their Own API Key (Recommended for Now)**
+The system uses your **existing API keys** from the Story Grid Pro API Key Manager:
+- Tries **Claude Sonnet 4** first (cheaper, better for analysis)
+- Falls back to **OpenAI GPT-4o-mini** if Claude unavailable
+- Keys stored in: `localStorage.getItem('VITE_OPENAI_API_KEY')` and `localStorage.getItem('VITE_ANTHROPIC_API_KEY')`
 
-1. User clicks "Generate Summary" button
-2. If no API key, shows error message
-3. User adds OpenAI API key to browser localStorage:
-   ```javascript
-   localStorage.setItem('openai_api_key', 'sk-...')
-   ```
+**No additional setup needed!** The keys are already managed through Settings → API Keys.
 
-### **Option 2: Backend Proxy (More Secure)**
+### **How It Works:**
 
-Create an endpoint in Management Hub that proxies OpenAI requests:
-
-```python
-# In management-hub/main.py
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-
-@app.post("/api/ai/summarize-trend")
-async def summarize_trend(
-    topic: str,
-    context: dict
-):
-    """Generate AI summary of trend data"""
-    import openai
-    
-    openai.api_key = OPENAI_API_KEY
-    
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{
-            "role": "system",
-            "content": "You are a health & wellness trend analyst..."
-        }, {
-            "role": "user",
-            "content": f"Analyze this trend: {json.dumps(context)}"
-        }],
-        max_tokens=200,
-        temperature=0.7
-    )
-    
-    return {
-        "summary": response.choices[0].message.content
-    }
-```
-
-Then update frontend to call this endpoint instead.
+1. User clicks "Generate Summary" on any trending topic
+2. System gathers: topic, sources, percentages, audience data, related terms
+3. Checks for Claude API key in localStorage
+4. Sends formatted prompt to Claude Sonnet 4
+5. If Claude unavailable, falls back to GPT-4o-mini
+6. Returns 3-4 sentence summary tailored for Susan
 
 ## 💰 **Cost Estimate**
 
-**GPT-4 Pricing:**
-- ~$0.03 per 1K input tokens
-- ~$0.06 per 1K output tokens
-- Each summary: ~500 input tokens + 200 output tokens
-- **Cost per summary: ~$0.03**
-
-**Claude Sonnet 4 Alternative (Cheaper):**
+**Claude Sonnet 4 (Primary):**
 - ~$0.003 per 1K input tokens
 - ~$0.015 per 1K output tokens
-- **Cost per summary: ~$0.005**
+- **Cost per summary: ~$0.005** ✅ Very affordable!
+
+**GPT-4o-mini (Fallback):**
+- ~$0.015 per 1K input tokens
+- ~$0.06 per 1K output tokens
+- **Cost per summary: ~$0.01** (still very cheap)
 
 ## 🎯 **Example Output**
 
@@ -80,44 +47,23 @@ Then update frontend to call this endpoint instead.
 **AI Summary:**
 > This trend is surging (+183%) driven primarily by TikTok (65% of mentions), where wellness creators are sharing personal gut health transformation stories. The timing aligns with growing scientific research on the gut-brain connection and increased awareness of microbiome health. **Content Opportunity:** Create a video series debunking common gut health myths, featuring before/after microbiome test results, and interview gastroenterologists about evidence-based supplement recommendations.
 
-## 🔄 **Alternative: Use Claude Instead of OpenAI**
+## 🧠 **AI Model Priority**
 
-Update the `generateAISummary` function to use Anthropic Claude:
+The system automatically tries:
+1. **Claude Sonnet 4** (primary) - Best for analysis, 5x cheaper
+2. **GPT-4o-mini** (fallback) - If Claude unavailable
 
-```typescript
-const response = await fetch('https://api.anthropic.com/v1/messages', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': localStorage.getItem('anthropic_api_key') || '',
-    'anthropic-version': '2023-06-01'
-  },
-  body: JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 200,
-    messages: [{
-      role: 'user',
-      content: `Analyze this health/wellness trend...`
-    }]
-  })
-});
-```
+Both models are tuned specifically for Susan's health/wellness content.
 
-## 🚀 **Next Steps**
+## 🚀 **Ready to Use!**
 
-1. **Decide which approach:**
-   - Quick: User provides own API key
-   - Secure: Backend proxy endpoint
+1. **Open Trending page** at `/trending`
+2. **Click any trending topic** (e.g., "Gut Health Supplements")
+3. **Click "Generate Summary"** button in the AI INSIGHT box
+4. **Wait ~2-3 seconds** for Claude to analyze
+5. **Read your personalized insight!**
 
-2. **Get API key:**
-   - OpenAI: https://platform.openai.com/api-keys
-   - Anthropic: https://console.anthropic.com/
-
-3. **Test it:**
-   - Open Trending page
-   - Click any topic
-   - Click "Generate Summary"
-   - See AI-powered insights!
+That's it! No extra setup needed.
 
 ## 🎨 **UI Features**
 
@@ -138,4 +84,4 @@ const response = await fetch('https://api.anthropic.com/v1/messages', {
 
 ---
 
-**Status:** Frontend ✅ Ready | Backend ⚠️ API Key Needed
+**Status:** ✅ READY TO USE - Uses existing API keys from Settings!
