@@ -122,6 +122,22 @@ interface RedditKeyword {
   posts: string[];
 }
 
+interface PubMedArticle {
+  pmid: string;
+  title: string;
+  authors: string;
+  journal: string;
+  pub_date: string;
+  link: string;
+  doi: string;
+}
+
+interface ResearchTopic {
+  topic: string;
+  count: number;
+  articles: string[];
+}
+
 interface TrendDataPoint {
   date: string;
   value: number;
@@ -691,7 +707,7 @@ const Trending = () => {
   const [youtubeTrends, setYoutubeTrends] = useState<YouTubeTrend[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
   const [graphData, setGraphData] = useState<TrendDataPoint[]>([]);
-  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'sources'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'pubmed' | 'sources'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
   
@@ -717,6 +733,11 @@ const Trending = () => {
   // Reddit data
   const [redditPosts, setRedditPosts] = useState<RedditPost[]>([]);
   const [redditKeywords, setRedditKeywords] = useState<RedditKeyword[]>([]);
+  
+  // PubMed data
+  const [pubmedArticles, setPubmedArticles] = useState<PubMedArticle[]>([]);
+  const [researchTopics, setResearchTopics] = useState<ResearchTopic[]>([]);
+  const [pubmedTotal, setPubmedTotal] = useState<number>(0);
 
   useEffect(() => {
     setMounted(true);
@@ -786,6 +807,21 @@ const Trending = () => {
         if (redditData.posts && redditData.posts.length > 0) {
           setRedditPosts(redditData.posts);
           setRedditKeywords(redditData.trending_keywords || []);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch PubMed Research (free API - no key needed!)
+      const pubmedResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/pubmed?days=30&max_results=20`
+      );
+      
+      if (pubmedResponse.ok) {
+        const pubmedData = await pubmedResponse.json();
+        if (pubmedData.articles && pubmedData.articles.length > 0) {
+          setPubmedArticles(pubmedData.articles);
+          setResearchTopics(pubmedData.trending_research || []);
+          setPubmedTotal(pubmedData.total_found || 0);
           setUsingRealData(true);
         }
       }
@@ -1315,9 +1351,10 @@ const Trending = () => {
         }}>
           {[
             { key: 'topics', label: 'Trending Topics', icon: TrendingUp },
-            { key: 'youtube', label: 'YouTube Trends', icon: Youtube },
-            { key: 'reddit', label: 'Reddit Discussions', icon: MessageSquare },
-            { key: 'sources', label: 'Data Sources', icon: Database },
+            { key: 'youtube', label: 'YouTube', icon: Youtube },
+            { key: 'reddit', label: 'Reddit', icon: MessageSquare },
+            { key: 'pubmed', label: 'Research', icon: BookOpen },
+            { key: 'sources', label: 'Sources', icon: Database },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -2048,6 +2085,218 @@ const Trending = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FF4500', fontSize: '13px', fontWeight: '600' }}>
                   <CheckCircle size={16} />
                   Real-time RSS feeds • No API key needed • Tracking r/longevity, r/Biohacking, r/Health, r/WomensHealth, r/nutrition
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'pubmed' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🔬 Latest Health Research (PubMed/NIH)
+              {pubmedArticles.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live Data
+                </span>
+              )}
+              {pubmedTotal > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: 'rgba(32, 99, 155, 0.1)',
+                  color: '#20639B',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  {pubmedTotal.toLocaleString()} articles found
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending Research Topics */}
+            {researchTopics.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(32, 99, 155, 0.2)'
+              }}>
+                <h3 style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  marginBottom: '16px',
+                  color: '#1F2937',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📊 Hot Research Topics (Last 30 Days)
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {researchTopics.map((topic, idx) => (
+                    <div
+                      key={topic.topic}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        background: idx === 0 ? 'linear-gradient(135deg, #20639B 0%, #3498DB 100%)' :
+                                   idx < 3 ? 'rgba(32, 99, 155, 0.15)' : 'rgba(32, 99, 155, 0.08)',
+                        color: idx === 0 ? 'white' : '#20639B',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      <span>{topic.topic}</span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        background: idx === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(32, 99, 155, 0.1)',
+                        fontSize: '11px'
+                      }}>
+                        {topic.count} papers
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* PubMed Articles */}
+            {pubmedArticles.length > 0 ? (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                {pubmedArticles.map((article, idx) => (
+                  <a
+                    key={article.pmid}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      padding: '18px',
+                      border: '1px solid rgba(32, 99, 155, 0.15)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
+                      display: 'block'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(32, 99, 155, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #20639B 0%, #3498DB 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <BookOpen size={24} color="white" />
+                      </div>
+                      
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{
+                          fontFamily: "'Outfit', sans-serif",
+                          fontSize: '15px',
+                          fontWeight: '700',
+                          color: '#1F2937',
+                          marginBottom: '8px',
+                          lineHeight: '1.4'
+                        }}>
+                          {article.title}
+                        </h3>
+                        
+                        <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '6px' }}>
+                          {article.authors}
+                        </p>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '12px' }}>
+                          <span style={{
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(32, 99, 155, 0.1)',
+                            color: '#20639B',
+                            fontWeight: '600'
+                          }}>
+                            {article.journal}
+                          </span>
+                          <span style={{ color: '#9CA3AF' }}>
+                            {article.pub_date}
+                          </span>
+                          <span style={{ color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <ExternalLink size={12} />
+                            PMID: {article.pmid}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px',
+                color: '#6B7280',
+                background: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '16px'
+              }}>
+                <BookOpen size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading research articles...</p>
+                <p>Fetching from PubMed/NIH database</p>
+              </div>
+            )}
+
+            {/* PubMed Info */}
+            {pubmedArticles.length > 0 && (
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                borderRadius: '12px',
+                background: 'rgba(32, 99, 155, 0.1)',
+                border: '1px solid rgba(32, 99, 155, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#20639B', fontSize: '13px', fontWeight: '600' }}>
+                  <CheckCircle size={16} />
+                  NCBI E-utilities API • No API key required • US National Library of Medicine • Perfect for RTÉ article research!
                 </div>
               </div>
             )}

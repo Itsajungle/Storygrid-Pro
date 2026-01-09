@@ -1205,10 +1205,155 @@ async def get_reddit_trends(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@app.get("/api/trends/pubmed")
+async def get_pubmed_trends(
+    topic: str = None,
+    days: int = 30,
+    max_results: int = 20
+):
+    """
+    Get recent health research publications from PubMed/NIH (free, no API key needed!)
+    Uses NCBI E-utilities API
+    """
+    try:
+        # Health topics to search if none specified
+        health_search_terms = [
+            "gut microbiome health",
+            "longevity aging",
+            "hormone therapy menopause",
+            "intermittent fasting",
+            "sleep optimization",
+            "mental health anxiety",
+            "women's health",
+            "nutrition supplements"
+        ]
+        
+        search_term = topic if topic else "health wellness longevity"
+        
+        # Calculate date range
+        from datetime import datetime, timedelta
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        date_range = f"{start_date.strftime('%Y/%m/%d')}:{end_date.strftime('%Y/%m/%d')}[dp]"
+        
+        # Step 1: Search for articles
+        search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+        search_params = {
+            "db": "pubmed",
+            "term": f"({search_term}) AND {date_range}",
+            "retmax": max_results,
+            "sort": "relevance",
+            "retmode": "json"
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            search_response = await client.get(search_url, params=search_params)
+            search_data = search_response.json()
+        
+        id_list = search_data.get("esearchresult", {}).get("idlist", [])
+        total_count = int(search_data.get("esearchresult", {}).get("count", 0))
+        
+        if not id_list:
+            return {
+                "articles": [],
+                "total_found": 0,
+                "search_term": search_term,
+                "message": "No recent articles found for this topic",
+                "source": "PubMed/NIH",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        # Step 2: Get article summaries
+        summary_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+        summary_params = {
+            "db": "pubmed",
+            "id": ",".join(id_list),
+            "retmode": "json"
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            summary_response = await client.get(summary_url, params=summary_params)
+            summary_data = summary_response.json()
+        
+        articles = []
+        result = summary_data.get("result", {})
+        
+        for pmid in id_list:
+            if pmid in result:
+                article = result[pmid]
+                
+                # Extract authors
+                authors = article.get("authors", [])
+                author_names = [a.get("name", "") for a in authors[:3]]
+                author_str = ", ".join(author_names)
+                if len(authors) > 3:
+                    author_str += " et al."
+                
+                articles.append({
+                    "pmid": pmid,
+                    "title": article.get("title", ""),
+                    "authors": author_str,
+                    "journal": article.get("fulljournalname", article.get("source", "")),
+                    "pub_date": article.get("pubdate", ""),
+                    "link": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                    "doi": article.get("elocationid", ""),
+                    "source": "PubMed"
+                })
+        
+        # Extract trending research topics from titles
+        research_keywords = {}
+        research_terms = [
+            "microbiome", "gut", "longevity", "aging", "hormone", "menopause",
+            "fasting", "ketogenic", "sleep", "circadian", "stress", "anxiety",
+            "depression", "inflammation", "immune", "cancer", "cardiovascular",
+            "diabetes", "obesity", "weight", "exercise", "nutrition", "vitamin",
+            "supplement", "probiotic", "antioxidant", "collagen", "peptide"
+        ]
+        
+        for article in articles:
+            title_lower = article["title"].lower()
+            for term in research_terms:
+                if term in title_lower:
+                    if term not in research_keywords:
+                        research_keywords[term] = {"count": 0, "articles": []}
+                    research_keywords[term]["count"] += 1
+                    if len(research_keywords[term]["articles"]) < 2:
+                        research_keywords[term]["articles"].append(article["title"][:60])
+        
+        # Sort by count
+        trending_research = sorted(
+            [{"topic": k, **v} for k, v in research_keywords.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+        
+        return {
+            "articles": articles,
+            "total_found": total_count,
+            "returned": len(articles),
+            "search_term": search_term,
+            "date_range": f"Last {days} days",
+            "trending_research": trending_research,
+            "source": "PubMed/NIH (NCBI E-utilities)",
+            "region": "Global (US-based database)",
+            "note": "Free API - no key required",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"PubMed API error: {str(e)}")
+        return {
+            "articles": [],
+            "error": str(e),
+            "message": "PubMed API temporarily unavailable",
+            "source": "PubMed/NIH",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @app.get("/api/trends/aggregate")
 async def get_aggregate_trends(timeframe: str = "week"):
     """
-    Get aggregated trends from all sources (Google Trends + YouTube + Reddit) - US focused
+    Get aggregated trends from all sources (Google Trends + YouTube + Reddit + PubMed) - US focused
     """
     try:
         # Get Google Trends for top health topics
@@ -1266,14 +1411,29 @@ async def get_aggregate_trends(timeframe: str = "week"):
                 "source_icon": "🔴"
             })
         
+        # Get PubMed trending research
+        pubmed_results = await get_pubmed_trends(days=30, max_results=10)
+        
+        # Add PubMed trending research topics
+        for research in pubmed_results.get('trending_research', [])[:3]:
+            all_trends.append({
+                "topic": research['topic'].title(),
+                "score": min(100, research['count'] * 25),
+                "trend_direction": "rising",
+                "publications": research['count'],
+                "source": "PubMed",
+                "source_icon": "🔬"
+            })
+        
         return {
             "trends": all_trends,
             "google_trends": google_results,
             "youtube_trends": youtube_results,
             "reddit_trends": reddit_results,
+            "pubmed_trends": pubmed_results,
             "timeframe": timeframe,
             "region": "US",
-            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS"],
+            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS", "PubMed/NIH"],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
@@ -1416,11 +1576,20 @@ async def get_trends_source_status():
             "region": "US"
         })
     
+    # Check PubMed (uses httpx which is already installed - no extra dependencies!)
+    sources_status.append({
+        "id": "pubmed",
+        "name": "PubMed/NIH",
+        "status": "online",
+        "icon": "🔬",
+        "message": "NCBI E-utilities API - no key required!",
+        "region": "Global"
+    })
+    
     # Future sources (not yet implemented)
     future_sources = [
-        {"id": "pubmed", "name": "PubMed/NIH", "status": "planned", "icon": "🔬", "message": "Coming soon"},
-        {"id": "newsapi", "name": "News API", "status": "planned", "icon": "📰", "message": "Coming soon"},
-        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Coming soon - requires business API"},
+        {"id": "newsapi", "name": "News API", "status": "planned", "icon": "📰", "message": "Coming soon - free key available"},
+        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Requires business API approval"},
     ]
     
     sources_status.extend(future_sources)
