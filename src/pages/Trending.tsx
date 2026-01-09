@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 
 // Management Hub API URL
-const MANAGEMENT_HUB_URL = 'https://management-hub-production-e4d5.up.railway.app';
+const MANAGEMENT_HUB_URL = 'https://management-hub-production-80d6.up.railway.app';
 
 // ============================================
 // TYPES
