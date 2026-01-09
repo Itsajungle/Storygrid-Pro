@@ -3,13 +3,15 @@ import React from 'react';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 import { useContentBlocks } from '@/contexts/ContentBlocksContext';
 
+interface DragItem {
+  id: string;
+  title: string;
+  [key: string]: unknown;
+}
+
 interface VerticalDragContainerProps {
-  items: Array<{
-    id: string;
-    title: string;
-    [key: string]: any;
-  }>;
-  children: (item: any, index: number, isDragging: boolean, isDropZoneActive: boolean) => React.ReactNode;
+  items: DragItem[];
+  children: (item: DragItem, index: number, isDragging: boolean, isDropZoneActive: boolean) => React.ReactNode;
   onReorder?: (draggedId: string, targetIndex: number) => void;
   className?: string;
 }

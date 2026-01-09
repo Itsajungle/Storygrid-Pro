@@ -213,9 +213,9 @@ const ContentHub = () => {
     },
     {
       title: 'Trending',
-      description: 'Discover trending topics and optimize content timing',
-      link: 'https://web-production-29982.up.railway.app/dashboard',
-      external: true
+      description: 'Health & wellness trends with time filters and YouTube insights',
+      link: '/trending',
+      external: false
     },
     {
       title: 'Video Processor',

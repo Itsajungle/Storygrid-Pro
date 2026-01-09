@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import SystemMonitor from "./pages/SystemMonitor";
 import VideoLibrary from "./pages/VideoLibrary";
 import RTEArticles from "./pages/RTEArticles";
+import Trending from "./pages/Trending";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <RTEArticles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trending"
+              element={
+                <ProtectedRoute>
+                  <Trending />
                 </ProtectedRoute>
               }
             />
