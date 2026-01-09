@@ -1085,10 +1085,130 @@ async def get_youtube_trends(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@app.get("/api/trends/reddit")
+async def get_reddit_trends(
+    subreddit: str = None,
+    limit: int = 20
+):
+    """
+    Get trending discussions from health & wellness subreddits via RSS (no API key needed!)
+    """
+    try:
+        import feedparser
+        
+        # Health & wellness subreddits to track
+        health_subreddits = [
+            "longevity",
+            "Biohacking",
+            "Health",
+            "WomensHealth",
+            "nutrition",
+            "Supplements",
+            "SkincareAddiction",
+            "Fitness",
+            "sleep",
+            "Nootropics"
+        ]
+        
+        # If specific subreddit requested, use only that
+        subreddits_to_fetch = [subreddit] if subreddit else health_subreddits[:5]
+        
+        all_posts = []
+        subreddit_stats = {}
+        
+        for sub in subreddits_to_fetch:
+            try:
+                # Fetch RSS feed
+                feed_url = f"https://www.reddit.com/r/{sub}/hot.rss?limit={limit}"
+                feed = feedparser.parse(feed_url)
+                
+                posts_from_sub = []
+                for entry in feed.entries[:limit]:
+                    # Extract post data
+                    post = {
+                        "id": entry.get("id", ""),
+                        "title": entry.get("title", ""),
+                        "author": entry.get("author", "unknown"),
+                        "subreddit": sub,
+                        "link": entry.get("link", ""),
+                        "published": entry.get("published", ""),
+                        "summary": entry.get("summary", "")[:300] + "..." if len(entry.get("summary", "")) > 300 else entry.get("summary", ""),
+                        "source": "Reddit RSS"
+                    }
+                    posts_from_sub.append(post)
+                    all_posts.append(post)
+                
+                subreddit_stats[sub] = {
+                    "posts_fetched": len(posts_from_sub),
+                    "status": "online"
+                }
+                
+            except Exception as e:
+                logger.error(f"Reddit RSS error for r/{sub}: {str(e)}")
+                subreddit_stats[sub] = {
+                    "posts_fetched": 0,
+                    "status": "error",
+                    "error": str(e)
+                }
+        
+        # Extract trending keywords from titles
+        trending_keywords = {}
+        health_terms = [
+            "gut", "sleep", "hormone", "weight", "diet", "supplement", "vitamin",
+            "protein", "longevity", "aging", "skin", "hair", "mental", "anxiety",
+            "stress", "fitness", "workout", "fasting", "keto", "menopause",
+            "thyroid", "collagen", "magnesium", "zinc", "omega", "probiotic"
+        ]
+        
+        for post in all_posts:
+            title_lower = post["title"].lower()
+            for term in health_terms:
+                if term in title_lower:
+                    if term not in trending_keywords:
+                        trending_keywords[term] = {"count": 0, "posts": []}
+                    trending_keywords[term]["count"] += 1
+                    if len(trending_keywords[term]["posts"]) < 3:
+                        trending_keywords[term]["posts"].append(post["title"][:80])
+        
+        # Sort keywords by count
+        sorted_keywords = sorted(
+            [{"keyword": k, **v} for k, v in trending_keywords.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+        
+        return {
+            "posts": all_posts,
+            "total_posts": len(all_posts),
+            "subreddits": subreddit_stats,
+            "trending_keywords": sorted_keywords,
+            "source": "Reddit RSS",
+            "region": "US",
+            "note": "No API key required - using public RSS feeds",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except ImportError:
+        logger.error("feedparser library not installed")
+        return {
+            "posts": [],
+            "error": "feedparser library not installed",
+            "message": "Reddit RSS temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Reddit RSS error: {str(e)}")
+        return {
+            "posts": [],
+            "error": str(e),
+            "message": "Reddit RSS temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @app.get("/api/trends/aggregate")
 async def get_aggregate_trends(timeframe: str = "week"):
     """
-    Get aggregated trends from all sources (Google Trends + YouTube) - US focused
+    Get aggregated trends from all sources (Google Trends + YouTube + Reddit) - US focused
     """
     try:
         # Get Google Trends for top health topics
@@ -1096,6 +1216,9 @@ async def get_aggregate_trends(timeframe: str = "week"):
         
         # Get YouTube trending for health
         youtube_results = await get_youtube_trends(max_results=5)
+        
+        # Get Reddit trending
+        reddit_results = await get_reddit_trends(limit=10)
         
         # Extract trending topics from YouTube titles
         youtube_topics = []
@@ -1132,13 +1255,25 @@ async def get_aggregate_trends(timeframe: str = "week"):
                 "source_icon": "🎬"
             })
         
+        # Add Reddit trending keywords
+        for kw in reddit_results.get('trending_keywords', [])[:3]:
+            all_trends.append({
+                "topic": kw['keyword'].title(),
+                "score": min(100, kw['count'] * 20),
+                "trend_direction": "rising",
+                "mentions": kw['count'],
+                "source": "Reddit",
+                "source_icon": "🔴"
+            })
+        
         return {
             "trends": all_trends,
             "google_trends": google_results,
             "youtube_trends": youtube_results,
+            "reddit_trends": reddit_results,
             "timeframe": timeframe,
             "region": "US",
-            "sources": ["Google Trends", "YouTube Data API"],
+            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS"],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
@@ -1250,9 +1385,39 @@ async def get_trends_source_status():
             "region": "US"
         })
     
+    # Check Reddit RSS (feedparser)
+    try:
+        feedparser_spec = importlib.util.find_spec("feedparser")
+        if feedparser_spec is not None:
+            sources_status.append({
+                "id": "reddit",
+                "name": "Reddit RSS",
+                "status": "online",
+                "icon": "🔴",
+                "message": "feedparser library available - no API key needed!",
+                "region": "US"
+            })
+        else:
+            sources_status.append({
+                "id": "reddit",
+                "name": "Reddit RSS",
+                "status": "offline",
+                "icon": "🔴",
+                "message": "feedparser library not installed",
+                "region": "US"
+            })
+    except Exception as e:
+        sources_status.append({
+            "id": "reddit",
+            "name": "Reddit RSS",
+            "status": "error",
+            "icon": "🔴",
+            "message": str(e),
+            "region": "US"
+        })
+    
     # Future sources (not yet implemented)
     future_sources = [
-        {"id": "reddit", "name": "Reddit API", "status": "planned", "icon": "🔴", "message": "Coming soon"},
         {"id": "pubmed", "name": "PubMed/NIH", "status": "planned", "icon": "🔬", "message": "Coming soon"},
         {"id": "newsapi", "name": "News API", "status": "planned", "icon": "📰", "message": "Coming soon"},
         {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Coming soon - requires business API"},

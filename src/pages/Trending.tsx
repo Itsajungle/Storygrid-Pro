@@ -106,6 +106,22 @@ interface RealYouTubeVideo {
   engagement_rate: number;
 }
 
+interface RedditPost {
+  id: string;
+  title: string;
+  author: string;
+  subreddit: string;
+  link: string;
+  published: string;
+  summary: string;
+}
+
+interface RedditKeyword {
+  keyword: string;
+  count: number;
+  posts: string[];
+}
+
 interface TrendDataPoint {
   date: string;
   value: number;
@@ -675,7 +691,7 @@ const Trending = () => {
   const [youtubeTrends, setYoutubeTrends] = useState<YouTubeTrend[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
   const [graphData, setGraphData] = useState<TrendDataPoint[]>([]);
-  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'sources'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'sources'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
   
@@ -697,6 +713,10 @@ const Trending = () => {
   }
   const [sourceStatuses, setSourceStatuses] = useState<SourceStatus[]>([]);
   const [statusSummary, setStatusSummary] = useState<{online: number; offline: number; planned: number}>({online: 0, offline: 0, planned: 0});
+  
+  // Reddit data
+  const [redditPosts, setRedditPosts] = useState<RedditPost[]>([]);
+  const [redditKeywords, setRedditKeywords] = useState<RedditKeyword[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -752,6 +772,20 @@ const Trending = () => {
         const youtubeData = await youtubeResponse.json();
         if (youtubeData.videos && youtubeData.videos.length > 0) {
           setRealYouTubeVideos(youtubeData.videos);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch Reddit Trends (RSS - no API key needed!)
+      const redditResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/reddit?limit=20`
+      );
+      
+      if (redditResponse.ok) {
+        const redditData = await redditResponse.json();
+        if (redditData.posts && redditData.posts.length > 0) {
+          setRedditPosts(redditData.posts);
+          setRedditKeywords(redditData.trending_keywords || []);
           setUsingRealData(true);
         }
       }
@@ -1282,6 +1316,7 @@ const Trending = () => {
           {[
             { key: 'topics', label: 'Trending Topics', icon: TrendingUp },
             { key: 'youtube', label: 'YouTube Trends', icon: Youtube },
+            { key: 'reddit', label: 'Reddit Discussions', icon: MessageSquare },
             { key: 'sources', label: 'Data Sources', icon: Database },
           ].map(({ key, label, icon: Icon }) => (
             <button
@@ -1829,6 +1864,190 @@ const Trending = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontSize: '13px', fontWeight: '600' }}>
                   <CheckCircle size={16} />
                   Real-time data from YouTube Data API v3 • Region: US • Last {realYouTubeVideos.length} trending health videos
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'reddit' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🔴 Reddit Health & Wellness Discussions
+              {redditPosts.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live via RSS
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending Keywords from Reddit */}
+            {redditKeywords.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(255, 69, 0, 0.2)'
+              }}>
+                <h3 style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  marginBottom: '16px',
+                  color: '#1F2937',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  🔥 Hot Topics on Reddit Right Now
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {redditKeywords.map((kw, idx) => (
+                    <div
+                      key={kw.keyword}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        background: idx === 0 ? 'linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)' :
+                                   idx < 3 ? 'rgba(255, 69, 0, 0.15)' : 'rgba(255, 69, 0, 0.08)',
+                        color: idx === 0 ? 'white' : '#FF4500',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span style={{ textTransform: 'capitalize' }}>{kw.keyword}</span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        background: idx === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255, 69, 0, 0.1)',
+                        fontSize: '11px'
+                      }}>
+                        {kw.count} posts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reddit Posts */}
+            {redditPosts.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gap: '16px'
+              }}>
+                {redditPosts.map((post, idx) => (
+                  <a
+                    key={post.id || idx}
+                    href={post.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      padding: '18px',
+                      border: '1px solid rgba(255, 69, 0, 0.15)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
+                      display: 'block'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-3px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 69, 0, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: '#FF4500',
+                        color: 'white',
+                        fontSize: '11px',
+                        fontWeight: '700'
+                      }}>
+                        r/{post.subreddit}
+                      </span>
+                      <span style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                        by u/{post.author}
+                      </span>
+                    </div>
+                    
+                    <h3 style={{
+                      fontFamily: "'Outfit', sans-serif",
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      color: '#1F2937',
+                      marginBottom: '8px',
+                      lineHeight: '1.4',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {post.title}
+                    </h3>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#6B7280' }}>
+                      <ExternalLink size={12} />
+                      Click to view on Reddit
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px',
+                color: '#6B7280',
+                background: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '16px'
+              }}>
+                <MessageSquare size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading Reddit discussions...</p>
+                <p>Fetching from health & wellness subreddits via RSS</p>
+              </div>
+            )}
+
+            {/* Reddit Info */}
+            {redditPosts.length > 0 && (
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                borderRadius: '12px',
+                background: 'rgba(255, 69, 0, 0.1)',
+                border: '1px solid rgba(255, 69, 0, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FF4500', fontSize: '13px', fontWeight: '600' }}>
+                  <CheckCircle size={16} />
+                  Real-time RSS feeds • No API key needed • Tracking r/longevity, r/Biohacking, r/Health, r/WomensHealth, r/nutrition
                 </div>
               </div>
             )}
