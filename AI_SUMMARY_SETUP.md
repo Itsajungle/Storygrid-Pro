@@ -10,23 +10,25 @@ The "Generate AI Summary" button in the Trending page:
   2. Why it matters now
   3. One specific content opportunity for Susan
 
-## 🔑 **Setup - ALREADY DONE! ✅**
+## 🔑 **Setup - BACKEND PROXY ✅**
 
-The system uses your **existing API keys** from the Story Grid Pro API Key Manager:
-- Tries **Claude Sonnet 4** first (cheaper, better for analysis)
+The system now uses **backend proxy** to avoid CORS issues:
+- Frontend calls Management Hub at `/api/ai/summarize-trend`
+- Backend tries **Claude Sonnet 4** first (cheaper, better for analysis)
 - Falls back to **OpenAI GPT-4o-mini** if Claude unavailable
-- Keys stored in: `localStorage.getItem('VITE_OPENAI_API_KEY')` and `localStorage.getItem('VITE_ANTHROPIC_API_KEY')`
+- API keys are stored securely in Railway environment variables
 
-**No additional setup needed!** The keys are already managed through Settings → API Keys.
+**No frontend API keys needed!** All AI calls go through the Management Hub backend.
 
 ### **How It Works:**
 
 1. User clicks "Generate Summary" on any trending topic
-2. System gathers: topic, sources, percentages, audience data, related terms
-3. Checks for Claude API key in localStorage
-4. Sends formatted prompt to Claude Sonnet 4
-5. If Claude unavailable, falls back to GPT-4o-mini
-6. Returns 3-4 sentence summary tailored for Susan
+2. Frontend gathers: topic, sources, percentages, audience data, related terms
+3. Sends context to Management Hub: `POST /api/ai/summarize-trend`
+4. Backend checks for `ANTHROPIC_API_KEY` in environment
+5. Calls Claude Sonnet 4 API with formatted prompt
+6. If Claude fails, tries OpenAI using `OPENAI_API_KEY`
+7. Returns 3-4 sentence summary tailored for Susan
 
 ## 💰 **Cost Estimate**
 
@@ -55,15 +57,26 @@ The system automatically tries:
 
 Both models are tuned specifically for Susan's health/wellness content.
 
-## 🚀 **Ready to Use!**
+## 🚀 **Deployment Required**
 
+### **Step 1: Deploy Backend**
+The Management Hub needs to be redeployed with the new AI endpoint:
+
+1. Commit and push changes (done automatically)
+2. Railway will auto-deploy the updated backend
+3. Wait ~2-3 minutes for deployment
+
+### **Step 2: Verify API Keys in Railway**
+Make sure these environment variables are set in Railway:
+- `ANTHROPIC_API_KEY` - Your Claude API key (starts with `sk-ant-`)
+- `OPENAI_API_KEY` - Your OpenAI key (backup, starts with `sk-`)
+
+### **Step 3: Test It!**
 1. **Open Trending page** at `/trending`
 2. **Click any trending topic** (e.g., "Gut Health Supplements")
 3. **Click "Generate Summary"** button in the AI INSIGHT box
 4. **Wait ~2-3 seconds** for Claude to analyze
 5. **Read your personalized insight!**
-
-That's it! No extra setup needed.
 
 ## 🎨 **UI Features**
 
@@ -84,4 +97,13 @@ That's it! No extra setup needed.
 
 ---
 
-**Status:** ✅ READY TO USE - Uses existing API keys from Settings!
+## 🔐 **Security Benefits**
+
+✅ **No API keys in frontend** - Keys stay secure on backend  
+✅ **No CORS issues** - All calls go through your server  
+✅ **Rate limiting possible** - Control AI API usage  
+✅ **Cost tracking** - Monitor AI spending centrally  
+
+---
+
+**Status:** ✅ Backend Updated | ⚠️ Needs Railway Deployment

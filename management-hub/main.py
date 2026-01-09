@@ -2446,6 +2446,144 @@ async def get_trends_source_status():
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+# ============================================
+# AI SUMMARY ENDPOINT
+# ============================================
+
+@app.post("/api/ai/summarize-trend")
+async def summarize_trend(request: Dict[str, Any]):
+    """
+    Generate AI summary of trend data using Claude or OpenAI
+    Proxies the request to avoid CORS issues in frontend
+    """
+    try:
+        context = request.get('context', {})
+        
+        logger.info(f"🤖 Generating AI summary for: {context.get('topic', 'Unknown')}")
+        
+        # Try Claude first (cheaper and better for analysis)
+        if anthropic_client:
+            try:
+                logger.info("Using Claude Sonnet 4 for trend summary")
+                
+                # Format the prompt
+                topic = context.get('topic', 'Unknown topic')
+                category = context.get('category', 'Health & Wellness')
+                change_percent = context.get('changePercent', 0)
+                search_volume = context.get('searchVolume', 0)
+                timeframe = context.get('timeframe', 'week')
+                sources = context.get('sources', [])
+                related_terms = context.get('relatedTerms', [])
+                peak_time = context.get('peakTime', 'Unknown')
+                audience_demo = context.get('audienceDemo', 'Unknown')
+                
+                # Build timeframe comparison text
+                timeframe_text = {
+                    'today': 'yesterday',
+                    'week': 'last week',
+                    'month': 'last month',
+                    'year': 'last year'
+                }.get(timeframe, 'previous period')
+                
+                # Build source text
+                top_source_text = ""
+                if sources and len(sources) > 0:
+                    top_source = sources[0]
+                    top_source_text = f"\nTop Source: {top_source.get('name', 'Unknown')} ({top_source.get('percentage', 0)}%)"
+                
+                prompt = f"""You are a health & wellness trend analyst helping content creator Susan. Analyze this trend and provide a brief, actionable summary (3-4 sentences):
+
+1. What's driving this trend (be specific about the main source)
+2. Why it matters now
+3. One specific content opportunity for Susan's health/longevity YouTube channel
+
+Trend: {topic}
+Category: {category}
+Change: {'+' if change_percent > 0 else ''}{change_percent}% vs {timeframe_text}
+Search Volume: {search_volume:,}{top_source_text}
+Audience: {audience_demo}
+Peak Time: {peak_time}
+Related: {', '.join(related_terms[:5])}
+
+Be specific, actionable, and focus on what Susan should do next."""
+
+                message = anthropic_client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=250,
+                    messages=[{
+                        "role": "user",
+                        "content": prompt
+                    }]
+                )
+                
+                summary = message.content[0].text
+                
+                return {
+                    "summary": summary,
+                    "model": "claude-sonnet-4",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                
+            except Exception as e:
+                logger.error(f"Claude API error: {e}")
+                # Fall through to OpenAI
+        
+        # Try OpenAI as fallback
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                logger.info("Using OpenAI GPT-4o-mini for trend summary")
+                
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={
+                            "Content-Type": "application/json",
+                            "Authorization": f"Bearer {openai_key}"
+                        },
+                        json={
+                            "model": "gpt-4o-mini",
+                            "messages": [{
+                                "role": "system",
+                                "content": "You are a health & wellness trend analyst helping content creator Susan. Provide concise, actionable insights."
+                            }, {
+                                "role": "user",
+                                "content": f"Analyze this health/wellness trend and provide a brief summary (3-4 sentences): {context}"
+                            }],
+                            "max_tokens": 250,
+                            "temperature": 0.7
+                        },
+                        timeout=30.0
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        summary = data['choices'][0]['message']['content']
+                        
+                        return {
+                            "summary": summary,
+                            "model": "gpt-4o-mini",
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                    else:
+                        raise HTTPException(status_code=response.status_code, detail="OpenAI API error")
+                        
+            except Exception as e:
+                logger.error(f"OpenAI API error: {e}")
+                raise HTTPException(status_code=500, detail=f"OpenAI error: {str(e)}")
+        
+        # No API available
+        raise HTTPException(
+            status_code=503, 
+            detail="No AI API available. Please configure ANTHROPIC_API_KEY or OPENAI_API_KEY in environment variables."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI summary error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate AI summary: {str(e)}")
+
 # Run the application
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
