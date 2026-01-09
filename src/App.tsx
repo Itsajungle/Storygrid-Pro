@@ -14,6 +14,7 @@ import SystemMonitor from "./pages/SystemMonitor";
 import VideoLibrary from "./pages/VideoLibrary";
 import RTEArticles from "./pages/RTEArticles";
 import Trending from "./pages/Trending";
+import VideoProcessor from "./pages/VideoProcessor";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Trending />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/video-processor"
+              element={
+                <ProtectedRoute>
+                  <VideoProcessor />
                 </ProtectedRoute>
               }
             />

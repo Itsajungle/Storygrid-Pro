@@ -219,9 +219,9 @@ const ContentHub = () => {
     },
     {
       title: 'Video Processor',
-      description: 'Process YouTube videos with Vizard AI',
-      link: 'https://web-production-29982.up.railway.app/api/video-processor/dashboard',
-      external: true
+      description: 'Find clips in your library and process with Vizard + HeyGen',
+      link: '/video-processor',
+      external: false
     },
     {
       title: 'Video Library',
