@@ -1850,58 +1850,73 @@ const Trending = () => {
                   </div>
                 )}
 
-                {/* AI Summary Section */}
+                {/* AI Summary Section - MORE PROMINENT */}
                 <div style={{
-                  padding: '14px',
+                  padding: '16px',
                   borderRadius: '12px',
-                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%)',
-                  border: '1px solid rgba(124, 58, 237, 0.2)',
-                  marginBottom: '12px'
+                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%)',
+                  border: '2px solid rgba(124, 58, 237, 0.3)',
+                  marginBottom: '16px',
+                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.1)'
                 }}>
                   <div style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: aiSummary ? '10px' : '0'
+                    flexDirection: 'column',
+                    gap: '12px'
                   }}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: '700',
                       color: '#7C3AED'
                     }}>
-                      <SparklesIcon size={14} />
+                      <SparklesIcon size={16} />
                       AI INSIGHT
                     </div>
+                    
                     <button
                       onClick={generateAISummary}
                       disabled={generatingAI}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '10px 16px',
+                        borderRadius: '10px',
                         border: 'none',
-                        background: generatingAI ? 'rgba(107, 114, 128, 0.1)' : 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                        background: generatingAI ? 'rgba(107, 114, 128, 0.2)' : 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                         color: 'white',
-                        fontSize: '11px',
-                        fontWeight: '600',
+                        fontSize: '13px',
+                        fontWeight: '700',
                         cursor: generatingAI ? 'not-allowed' : 'pointer',
-                        opacity: generatingAI ? 0.6 : 1
+                        opacity: generatingAI ? 0.6 : 1,
+                        transition: 'all 0.2s',
+                        boxShadow: generatingAI ? 'none' : '0 4px 12px rgba(124, 58, 237, 0.3)',
+                        width: '100%'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!generatingAI) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(124, 58, 237, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.3)';
                       }}
                     >
                       {generatingAI ? (
                         <>
-                          <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                          Generating...
+                          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                          Generating AI Summary...
                         </>
                       ) : (
                         <>
-                          <SparklesIcon size={12} />
-                          Generate Summary
+                          <SparklesIcon size={14} />
+                          Generate AI Summary
                         </>
                       )}
                     </button>
@@ -1909,12 +1924,14 @@ const Trending = () => {
                   
                   {aiSummary && (
                     <div style={{
-                      fontSize: '13px',
-                      color: '#374151',
-                      lineHeight: '1.6',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.5)'
+                      fontSize: '14px',
+                      color: '#1F2937',
+                      lineHeight: '1.7',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      border: '1px solid rgba(124, 58, 237, 0.1)',
+                      marginTop: '8px'
                     }}>
                       {aiSummary}
                     </div>
@@ -1922,12 +1939,12 @@ const Trending = () => {
                   
                   {!aiSummary && !generatingAI && (
                     <div style={{
-                      fontSize: '11px',
-                      color: '#9CA3AF',
-                      marginTop: '6px',
-                      fontStyle: 'italic'
+                      fontSize: '12px',
+                      color: '#7C3AED',
+                      fontStyle: 'italic',
+                      textAlign: 'center'
                     }}>
-                      Get AI-powered insights synthesized from all sources
+                      Click above to get AI-powered insights from all sources
                     </div>
                   )}
                 </div>
