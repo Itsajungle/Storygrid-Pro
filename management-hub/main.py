@@ -1761,6 +1761,301 @@ async def get_newsletter_trends(limit: int = 20):
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@app.get("/api/trends/tiktok")
+async def get_tiktok_trends(
+    count: int = 20,
+    force_refresh: bool = False
+):
+    """
+    Get trending TikTok videos and hashtags (free, no API key!)
+    Uses davidteather/TikTok-Api library
+    Warning: May break when TikTok updates their API
+    """
+    try:
+        from TikTokApi import TikTokApi
+        
+        # Cache for 1 hour to avoid rate limiting
+        cache_key = "tiktok_trending"
+        if not force_refresh and cache_key in CACHE:
+            cached = CACHE[cache_key]
+            if cached.get("data") and cached.get("timestamp"):
+                age = time.time() - cached["timestamp"]
+                if age < 3600:  # 1 hour
+                    logger.info(f"Returning cached TikTok data (age: {int(age)}s)")
+                    return {
+                        **cached["data"],
+                        "cached": True,
+                        "cache_age_seconds": int(age)
+                    }
+        
+        logger.info(f"Fetching {count} trending TikTok videos")
+        
+        async with TikTokApi() as api:
+            trending_videos = []
+            hashtag_counts = {}
+            
+            async for video in api.trending.videos(count=count):
+                try:
+                    # Extract video data
+                    video_data = {
+                        "id": video.id,
+                        "description": getattr(video, "desc", ""),
+                        "author": {
+                            "username": video.author.username if hasattr(video, "author") else "unknown",
+                            "nickname": video.author.nickname if hasattr(video, "author") else "unknown",
+                        },
+                        "stats": {
+                            "views": video.stats.get("playCount", 0) if hasattr(video, "stats") else 0,
+                            "likes": video.stats.get("diggCount", 0) if hasattr(video, "stats") else 0,
+                            "shares": video.stats.get("shareCount", 0) if hasattr(video, "stats") else 0,
+                            "comments": video.stats.get("commentCount", 0) if hasattr(video, "stats") else 0,
+                        },
+                        "music": {
+                            "title": video.music.title if hasattr(video, "music") and hasattr(video.music, "title") else None,
+                            "author": video.music.author if hasattr(video, "music") and hasattr(video.music, "author") else None,
+                        },
+                        "url": f"https://www.tiktok.com/@{video.author.username}/video/{video.id}" if hasattr(video, "author") else None,
+                        "created_at": getattr(video, "createTime", None)
+                    }
+                    
+                    # Extract hashtags
+                    if hasattr(video, "challenges"):
+                        hashtags = [tag.get("title", "") for tag in video.challenges if tag.get("title")]
+                        video_data["hashtags"] = hashtags
+                        
+                        # Count hashtags
+                        for tag in hashtags:
+                            if tag:
+                                if tag not in hashtag_counts:
+                                    hashtag_counts[tag] = {
+                                        "count": 0,
+                                        "total_views": 0,
+                                        "total_likes": 0
+                                    }
+                                hashtag_counts[tag]["count"] += 1
+                                hashtag_counts[tag]["total_views"] += video_data["stats"]["views"]
+                                hashtag_counts[tag]["total_likes"] += video_data["stats"]["likes"]
+                    else:
+                        video_data["hashtags"] = []
+                    
+                    trending_videos.append(video_data)
+                    
+                except Exception as e:
+                    logger.error(f"Error extracting video data: {str(e)}")
+                    continue
+            
+            # Sort hashtags by count
+            trending_hashtags = sorted(
+                [{"hashtag": k, **v} for k, v in hashtag_counts.items()],
+                key=lambda x: x["count"],
+                reverse=True
+            )[:20]
+            
+            # Filter for health & wellness related content
+            health_keywords = [
+                "health", "wellness", "fitness", "nutrition", "gut", "sleep", 
+                "hormone", "menopause", "weight", "diet", "mental", "anxiety", 
+                "stress", "longevity", "aging", "beauty", "skin", "hair"
+            ]
+            
+            health_videos = []
+            for video in trending_videos:
+                text = (video.get("description", "") + " ".join(video.get("hashtags", []))).lower()
+                if any(keyword in text for keyword in health_keywords):
+                    health_videos.append(video)
+            
+            result = {
+                "videos": trending_videos,
+                "total_videos": len(trending_videos),
+                "trending_hashtags": trending_hashtags,
+                "health_wellness_videos": health_videos,
+                "health_video_count": len(health_videos),
+                "source": "TikTok (Free API)",
+                "region": "US",
+                "note": "Free API - may break when TikTok updates. Monitored by infrastructure system.",
+                "warning": "Check /api/trends/tiktok/health for reliability status",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "cached": False
+            }
+            
+            # Cache the result
+            CACHE[cache_key] = {
+                "data": result,
+                "timestamp": time.time(),
+                "ttl": 3600
+            }
+            
+            logger.info(f"Successfully fetched {len(trending_videos)} TikTok videos ({len(health_videos)} health-related)")
+            
+            return result
+            
+    except ImportError:
+        logger.error("TikTokApi library not installed")
+        return {
+            "videos": [],
+            "error": "TikTokApi library not installed",
+            "message": "Run: pip install TikTokApi && python -m playwright install",
+            "status": "offline",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"TikTok API Error: {str(e)}")
+        return {
+            "videos": [],
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "message": "TikTok API temporarily unavailable - may need update",
+            "status": "error",
+            "suggestion": "Check https://github.com/davidteather/TikTok-Api/issues for known issues",
+            "fallback": "Consider Apify TikTok API ($0.001 per 100 results): https://apify.com/novi/tiktok-trend-api",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/api/trends/tiktok/health")
+async def get_tiktok_health():
+    """
+    Check TikTok API health status
+    Your monitoring system should hit this regularly to detect when the API breaks
+    """
+    try:
+        from TikTokApi import TikTokApi
+        
+        logger.info("Running TikTok API health check")
+        
+        async with TikTokApi() as api:
+            video_count = 0
+            async for video in api.trending.videos(count=1):
+                video_count += 1
+                break
+            
+            if video_count > 0:
+                # Check cache age
+                cache_key = "tiktok_trending"
+                cache_age = None
+                if cache_key in CACHE and CACHE[cache_key].get("timestamp"):
+                    cache_age = int(time.time() - CACHE[cache_key]["timestamp"])
+                
+                return {
+                    "status": "healthy",
+                    "message": "TikTok API responding normally",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "cache_age_seconds": cache_age,
+                    "library": "davidteather/TikTok-Api",
+                    "monitored_by": "Story Grid Pro Infrastructure System"
+                }
+            else:
+                return {
+                    "status": "degraded",
+                    "message": "API accessible but no data returned",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "suggestion": "May be temporary rate limiting"
+                }
+        
+    except ImportError:
+        return {
+            "status": "offline",
+            "error": "TikTokApi library not installed",
+            "message": "Run: pip install TikTokApi && python -m playwright install",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"TikTok API health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "suggestion": "Check https://github.com/davidteather/TikTok-Api/issues for known issues",
+            "fix_steps": [
+                "1. Try updating: pip install --upgrade TikTokApi",
+                "2. Reinstall playwright: python -m playwright install",
+                "3. If down >24hrs, consider Apify backup"
+            ]
+        }
+
+@app.get("/api/trends/tiktok/search")
+async def search_tiktok(
+    query: str,
+    count: int = 20
+):
+    """
+    Search TikTok videos by keyword
+    Useful for finding health/wellness content
+    """
+    try:
+        from TikTokApi import TikTokApi
+        
+        logger.info(f"Searching TikTok for: {query}")
+        
+        async with TikTokApi() as api:
+            videos = []
+            
+            async for video in api.search.videos(query, count=count):
+                try:
+                    video_data = {
+                        "id": video.id,
+                        "description": getattr(video, "desc", ""),
+                        "author": {
+                            "username": video.author.username if hasattr(video, "author") else "unknown",
+                            "nickname": video.author.nickname if hasattr(video, "author") else "unknown",
+                        },
+                        "stats": {
+                            "views": video.stats.get("playCount", 0) if hasattr(video, "stats") else 0,
+                            "likes": video.stats.get("diggCount", 0) if hasattr(video, "stats") else 0,
+                            "shares": video.stats.get("shareCount", 0) if hasattr(video, "stats") else 0,
+                            "comments": video.stats.get("commentCount", 0) if hasattr(video, "stats") else 0,
+                        },
+                        "url": f"https://www.tiktok.com/@{video.author.username}/video/{video.id}" if hasattr(video, "author") else None,
+                    }
+                    
+                    if hasattr(video, "challenges"):
+                        video_data["hashtags"] = [tag.get("title", "") for tag in video.challenges if tag.get("title")]
+                    else:
+                        video_data["hashtags"] = []
+                    
+                    videos.append(video_data)
+                    
+                except Exception as e:
+                    logger.error(f"Error extracting video: {str(e)}")
+                    continue
+            
+            return {
+                "videos": videos,
+                "query": query,
+                "total": len(videos),
+                "source": "TikTok Search",
+                "region": "US",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+    except ImportError:
+        return {
+            "videos": [],
+            "error": "TikTokApi library not installed",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"TikTok Search Error: {str(e)}")
+        return {
+            "videos": [],
+            "error": str(e),
+            "query": query,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.post("/api/trends/tiktok/cache/clear")
+async def clear_tiktok_cache():
+    """Clear TikTok cache (admin endpoint)"""
+    cache_key = "tiktok_trending"
+    if cache_key in CACHE:
+        del CACHE[cache_key]
+    
+    return {
+        "success": True,
+        "message": "TikTok cache cleared",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 @app.get("/api/trends/aggregate")
 async def get_aggregate_trends(timeframe: str = "week"):
     """
@@ -1850,6 +2145,24 @@ async def get_aggregate_trends(timeframe: str = "week"):
                 "source_icon": "📰"
             })
         
+        # Get TikTok trending hashtags (health-focused)
+        try:
+            tiktok_results = await get_tiktok_trends(count=30, force_refresh=False)
+            
+            # Add top health/wellness TikTok trends
+            for hashtag in tiktok_results.get('trending_hashtags', [])[:3]:
+                all_trends.append({
+                    "topic": f"#{hashtag['hashtag']}",
+                    "score": min(100, hashtag['count'] * 10),
+                    "trend_direction": "viral",
+                    "video_count": hashtag['count'],
+                    "views": hashtag.get('total_views', 0),
+                    "source": "TikTok",
+                    "source_icon": "🎵"
+                })
+        except Exception as e:
+            logger.warning(f"TikTok trends unavailable in aggregate: {str(e)}")
+        
         return {
             "trends": all_trends,
             "google_trends": google_results,
@@ -1857,9 +2170,10 @@ async def get_aggregate_trends(timeframe: str = "week"):
             "reddit_trends": reddit_results,
             "pubmed_trends": pubmed_results,
             "news_trends": news_results,
+            "tiktok_health": tiktok_results.get('health_video_count', 0) if 'tiktok_results' in locals() else 0,
             "timeframe": timeframe,
             "region": "US",
-            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS", "PubMed/NIH", "News API"],
+            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS", "PubMed/NIH", "News API", "TikTok (Free)"],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
@@ -2084,12 +2398,36 @@ async def get_trends_source_status():
         "region": "Global"
     })
     
-    # Future sources (not yet implemented)
-    future_sources = [
-        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Business API - coming soon"},
-    ]
-    
-    sources_status.extend(future_sources)
+    # Check TikTok (TikTokApi library)
+    try:
+        tiktokapi_spec = importlib.util.find_spec("TikTokApi")
+        if tiktokapi_spec is not None:
+            sources_status.append({
+                "id": "tiktok",
+                "name": "TikTok",
+                "status": "online",
+                "icon": "🎵",
+                "message": "Free TikTok-Api library - may break when TikTok updates",
+                "region": "US"
+            })
+        else:
+            sources_status.append({
+                "id": "tiktok",
+                "name": "TikTok",
+                "status": "offline",
+                "icon": "🎵",
+                "message": "TikTokApi library not installed",
+                "region": "US"
+            })
+    except Exception as e:
+        sources_status.append({
+            "id": "tiktok",
+            "name": "TikTok",
+            "status": "error",
+            "icon": "🎵",
+            "message": str(e),
+            "region": "US"
+        })
     
     # Calculate summary
     online_count = sum(1 for s in sources_status if s['status'] == 'online')

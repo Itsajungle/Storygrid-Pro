@@ -1472,6 +1472,7 @@ const Trending = () => {
           {[
             { key: 'topics', label: 'All', icon: TrendingUp },
             { key: 'youtube', label: 'YouTube', icon: Youtube },
+            { key: 'tiktok', label: 'TikTok', icon: Play },
             { key: 'reddit', label: 'Reddit', icon: MessageSquare },
             { key: 'news', label: 'News', icon: Newspaper },
             { key: 'podcasts', label: 'Podcasts', icon: Radio },
