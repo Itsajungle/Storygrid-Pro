@@ -201,87 +201,119 @@ const ContentHub = () => {
   const displayRecs = recommendations.length > 0 ? recommendations : getSampleRecommendations();
 
   // ============================================
-  // APP DATA
+  // APP DATA - ORGANIZED BY CATEGORY
   // ============================================
 
-  const apps = [
+  const appCategories = [
     {
-      title: 'AI Agent Training',
-      description: 'Train and configure AI agents for content analysis',
-      link: 'https://web-production-29982.up.railway.app/api/agent-training',
-      external: true
+      name: 'Foundation',
+      apps: [
+        {
+          title: 'AI Agent Training',
+          description: 'Train and configure AI agents for content analysis',
+          link: 'https://web-production-29982.up.railway.app/api/agent-training',
+          external: true
+        },
+        {
+          title: 'Video Library',
+          description: 'Track and manage video content from YouTube, Vimeo, Local & NAS',
+          link: '/video-library',
+          external: false
+        }
+      ]
     },
     {
-      title: 'Trending',
-      description: 'Health & wellness trends with time filters and YouTube insights',
-      link: '/trending',
-      external: false
+      name: 'Production',
+      apps: [
+        {
+          title: 'Trending',
+          description: 'Health & wellness trends with AI-powered insights',
+          link: '/trending',
+          external: false
+        },
+        {
+          title: 'Social Studio',
+          description: 'AI content generation with GPT-4 and DALL-E',
+          link: 'https://web-production-29982.up.railway.app/api/social-studio/dashboard',
+          external: true
+        },
+        {
+          title: 'Video Processor',
+          description: 'Find clips in your library and process with Vizard + HeyGen',
+          link: '/video-processor',
+          external: false
+        },
+        {
+          title: 'Story Grid Pro',
+          description: 'Content planning and strategy tools',
+          link: '/app',
+          external: false
+        },
+        {
+          title: 'RTÉ Articles',
+          description: 'Generate article angles for RTÉ publication',
+          link: '/rte-articles',
+          external: false
+        }
+      ]
     },
     {
-      title: 'Video Processor',
-      description: 'Find clips in your library and process with Vizard + HeyGen',
-      link: '/video-processor',
-      external: false
+      name: 'Analytics',
+      apps: [
+        {
+          title: 'Analytics',
+          description: 'Track performance across all platforms with Metricool',
+          link: 'https://app.metricool.com',
+          external: true
+        }
+      ]
     },
     {
-      title: 'Video Library',
-      description: 'Track and manage all video content',
-      link: '/video-library',
-      external: false
-    },
-    {
-      title: 'Social Studio',
-      description: 'AI content generation with GPT-4 and DALL-E',
-      link: 'https://web-production-29982.up.railway.app/api/social-studio/dashboard',
-      external: true
-    },
-    {
-      title: 'Batch Studio',
-      description: 'Generate 7 posts at once with AI topic suggestions',
-      link: 'https://web-production-29982.up.railway.app/api/social-studio/batch',
-      external: true
-    },
-    {
-      title: 'RTÉ Articles',
-      description: 'Generate article angles for RTÉ publication',
-      link: '/rte-articles',
-      external: false
-    },
-    {
-      title: 'Analytics',
-      description: 'Track performance across all platforms',
-      link: 'https://app.metricool.com',
-      external: true
-    },
-    {
-      title: 'Story Grid Pro',
-      description: 'Content planning and strategy tools',
-      link: '/app',
-      external: false
-    },
-    {
-      title: 'Main Website',
-      description: 'Visit the It\'s a Jungle website',
-      link: 'https://itsajungle.tv',
-      external: true
-    },
-    {
-      title: 'YouTube Channel',
-      description: 'Watch full episodes and clips',
-      link: 'https://youtube.com/@ItsAJungle',
-      external: true
-    },
-    {
-      title: 'Shopify Store',
-      description: 'Shop merchandise and wellness products',
-      link: 'https://its-a-jungle-3.myshopify.com',
-      external: true
-    },
-    {
-      title: 'GitHub',
-      description: 'View source code and documentation',
-      link: 'https://github.com/Itsajungle/IAJ-Social-Media',
-      external: true
+      name: 'Links',
+      apps: [
+        {
+          title: 'IAJ Website',
+          description: 'Visit the It\'s a Jungle website',
+          link: 'https://itsajungle.tv',
+          external: true
+        },
+        {
+          title: 'YouTube Channel',
+          description: 'Watch full episodes and clips',
+          link: 'https://youtube.com/@ItsAJungle',
+          external: true
+        },
+        {
+          title: 'Shopify Store',
+          description: 'Shop merchandise and wellness products',
+          link: 'https://its-a-jungle-3.myshopify.com',
+          external: true
+        },
+        {
+          title: 'GitHub',
+          description: 'View source code and documentation',
+          link: 'https://github.com/Itsajungle/IAJ-Social-Media',
+          external: true
+        },
+        {
+          title: 'Supabase',
+          description: 'Database and backend services',
+          link: 'https://supabase.com/dashboard',
+          external: true
+        },
+        {
+          title: 'Railway',
+          description: 'Backend deployment and hosting',
+          link: 'https://railway.app/dashboard',
+          external: true
+        },
+        {
+          title: 'Netlify',
+          description: 'Frontend deployment and hosting',
+          link: 'https://app.netlify.com',
+          external: true
+        }
+      ]
     }
   ];
 
@@ -576,11 +608,175 @@ const ContentHub = () => {
           padding: '0 60px 100px'
         }}>
           
-          {/* System Health Section */}
+          {/* Apps Section - MOVED TO TOP */}
           <section 
             className={mounted ? 'animate-in' : ''}
             style={{
               animationDelay: '350ms',
+              marginBottom: '80px'
+            }}
+          >
+            {/* Section Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              marginBottom: '40px'
+            }}>
+              <ExternalLink 
+                size={28} 
+                color="#105c8a"
+                strokeWidth={2}
+              />
+              <h2 style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#1a2942',
+                margin: 0,
+                letterSpacing: '-0.02em'
+              }}>
+                Applications
+              </h2>
+              <div style={{
+                flex: 1,
+                height: '2px',
+                background: 'linear-gradient(to right, rgba(16, 92, 138, 0.2), transparent)',
+                marginLeft: '16px'
+              }} />
+            </div>
+
+            {/* Apps by Category */}
+            {appCategories.map((category, catIdx) => (
+              <div key={category.name} style={{ marginBottom: '60px' }}>
+                {/* Category Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{
+                    fontFamily: "'Outfit', sans-serif",
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: '#105c8a',
+                    margin: 0,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase'
+                  }}>
+                    {category.name}
+                  </h3>
+                  <div style={{
+                    flex: 1,
+                    height: '1px',
+                    background: 'linear-gradient(to right, rgba(16, 92, 138, 0.15), transparent)'
+                  }} />
+                </div>
+
+                {/* Apps Grid for this category */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: category.name === 'Foundation' ? 'repeat(2, 1fr)' : 
+                                      category.name === 'Production' ? 'repeat(auto-fill, minmax(260px, 1fr))' :
+                                      category.name === 'Analytics' ? '1fr' :
+                                      'repeat(auto-fill, minmax(240px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {category.apps.map((app, idx) => {
+                    const globalIdx = catIdx * 10 + idx;
+                    const color = colors[globalIdx % colors.length];
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleCardClick(app)}
+                        onMouseEnter={() => setHoveredApp(globalIdx)}
+                        onMouseLeave={() => setHoveredApp(null)}
+                        className={mounted ? 'animate-in' : ''}
+                        style={{
+                          animationDelay: `${400 + globalIdx * 50}ms`,
+                          background: hoveredApp === globalIdx 
+                            ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)'
+                            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.5) 100%)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid',
+                          borderColor: hoveredApp === globalIdx ? 'rgba(16, 92, 138, 0.2)' : 'rgba(16, 92, 138, 0.08)',
+                          borderRadius: '18px',
+                          padding: '24px',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                          transform: hoveredApp === globalIdx ? 'translateY(-6px)' : 'translateY(0)',
+                          boxShadow: hoveredApp === globalIdx 
+                            ? '0 16px 48px rgba(16, 92, 138, 0.12)' 
+                            : '0 4px 16px rgba(16, 92, 138, 0.04)',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {/* Accent bar */}
+                        <div style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '4px',
+                          height: hoveredApp === globalIdx ? '100%' : '0%',
+                          background: `linear-gradient(to bottom, ${color}, transparent)`,
+                          transition: 'height 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }} />
+
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          marginBottom: '12px'
+                        }}>
+                          <h3 style={{
+                            fontFamily: "'Outfit', sans-serif",
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            color: '#1a2942',
+                            letterSpacing: '-0.01em',
+                            lineHeight: '1.4'
+                          }}>
+                            {app.title}
+                          </h3>
+                          {app.external && (
+                            <ExternalLink 
+                              size={14} 
+                              color="#6b7a8f" 
+                              style={{
+                                opacity: hoveredApp === globalIdx ? 1 : 0.5,
+                                transition: 'opacity 0.3s ease',
+                                flexShrink: 0
+                              }}
+                            />
+                          )}
+                        </div>
+                        <p style={{
+                          fontFamily: "'Manrope', sans-serif",
+                          fontSize: '13px',
+                          fontWeight: '400',
+                          lineHeight: '1.6',
+                          color: '#4a5f7a',
+                          letterSpacing: '-0.01em',
+                          margin: 0
+                        }}>
+                          {app.description}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* System Health Section */}
+          <section 
+            className={mounted ? 'animate-in' : ''}
+            style={{
+              animationDelay: '800ms',
               marginBottom: '80px'
             }}
           >
@@ -756,12 +952,12 @@ const ContentHub = () => {
             </div>
           </section>
 
-          {/* AI Insights Section */}
+          {/* AI Insights Section - MOVED TO BOTTOM */}
           <section 
             className={mounted ? 'animate-in' : ''}
             style={{
-              animationDelay: '500ms',
-              marginBottom: '80px'
+              animationDelay: '1000ms',
+              marginBottom: '60px'
             }}
           >
             {/* Section Header */}
@@ -1025,136 +1221,6 @@ const ContentHub = () => {
             </div>
           </section>
 
-          {/* Apps Section */}
-          <section 
-            className={mounted ? 'animate-in' : ''}
-            style={{
-              animationDelay: '700ms',
-              marginBottom: '60px'
-            }}
-          >
-            {/* Section Header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              marginBottom: '40px'
-            }}>
-              <ExternalLink 
-                size={28} 
-                color="#105c8a"
-                strokeWidth={2}
-              />
-              <h2 style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontSize: '28px',
-                fontWeight: '700',
-                color: '#1a2942',
-                margin: 0,
-                letterSpacing: '-0.02em'
-              }}>
-                Applications
-              </h2>
-              <div style={{
-                flex: 1,
-                height: '2px',
-                background: 'linear-gradient(to right, rgba(16, 92, 138, 0.2), transparent)',
-                marginLeft: '16px'
-              }} />
-            </div>
-
-            {/* Apps Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: '20px'
-            }}>
-              {apps.map((app, idx) => {
-                const color = colors[idx % colors.length];
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleCardClick(app)}
-                    onMouseEnter={() => setHoveredApp(idx)}
-                    onMouseLeave={() => setHoveredApp(null)}
-                    className={mounted ? 'animate-in' : ''}
-                    style={{
-                      animationDelay: `${800 + idx * 50}ms`,
-                      background: hoveredApp === idx 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.5) 100%)',
-                      backdropFilter: 'blur(20px)',
-                      border: '1px solid',
-                      borderColor: hoveredApp === idx ? 'rgba(16, 92, 138, 0.2)' : 'rgba(16, 92, 138, 0.08)',
-                      borderRadius: '18px',
-                      padding: '24px',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                      transform: hoveredApp === idx ? 'translateY(-6px)' : 'translateY(0)',
-                      boxShadow: hoveredApp === idx 
-                        ? '0 16px 48px rgba(16, 92, 138, 0.12)' 
-                        : '0 4px 16px rgba(16, 92, 138, 0.04)',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {/* Accent bar */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '4px',
-                      height: hoveredApp === idx ? '100%' : '0%',
-                      background: `linear-gradient(to bottom, ${color}, transparent)`,
-                      transition: 'height 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }} />
-
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '12px'
-                    }}>
-                      <h3 style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: '#1a2942',
-                        letterSpacing: '-0.01em',
-                        lineHeight: '1.4'
-                      }}>
-                        {app.title}
-                      </h3>
-                      {app.external && (
-                        <ExternalLink 
-                          size={14} 
-                          color="#6b7a8f" 
-                          style={{
-                            opacity: hoveredApp === idx ? 1 : 0.5,
-                            transition: 'opacity 0.3s ease',
-                            flexShrink: 0
-                          }}
-                        />
-                      )}
-                    </div>
-                    <p style={{
-                      fontFamily: "'Manrope', sans-serif",
-                      fontSize: '13px',
-                      fontWeight: '400',
-                      lineHeight: '1.6',
-                      color: '#4a5f7a',
-                      letterSpacing: '-0.01em',
-                      margin: 0
-                    }}>
-                      {app.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
           {/* Footer */}
           <footer 
             className={mounted ? 'fade-in' : ''}
@@ -1172,7 +1238,7 @@ const ContentHub = () => {
               letterSpacing: '0.05em',
               fontWeight: '600'
             }}>
-              It's a Jungle Content Hub • 2025
+              It's a Jungle Content Hub • 2026
             </p>
             <p style={{
               fontFamily: "'Manrope', sans-serif",
