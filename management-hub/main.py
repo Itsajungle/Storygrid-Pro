@@ -882,6 +882,9 @@ HEALTH_TOPICS = [
 # YouTube API key
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
 
+# News API key
+NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
+
 @app.get("/api/trends/google")
 async def get_google_trends(
     topic: str = None,
@@ -1350,10 +1353,122 @@ async def get_pubmed_trends(
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
+@app.get("/api/trends/news")
+async def get_health_news(
+    topic: str = None,
+    days: int = 7,
+    max_results: int = 20
+):
+    """
+    Get health & wellness news from News API (newsapi.org)
+    Covers: Healthline, WebMD, Medical News Today, BBC Health, etc.
+    """
+    try:
+        api_key = NEWS_API_KEY
+        if not api_key:
+            return {
+                "articles": [],
+                "error": "NEWS_API_KEY not configured",
+                "message": "News API key required - get free key at newsapi.org",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        # Calculate date range
+        from_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime('%Y-%m-%d')
+        
+        # Health-focused search query
+        search_query = topic if topic else "health OR wellness OR longevity OR nutrition OR fitness OR menopause OR gut health"
+        
+        # News API endpoint
+        news_url = "https://newsapi.org/v2/everything"
+        params = {
+            "q": search_query,
+            "from": from_date,
+            "language": "en",
+            "sortBy": "relevancy",
+            "pageSize": max_results,
+            "apiKey": api_key,
+            # Focus on health/wellness domains
+            "domains": "healthline.com,webmd.com,medicalnewstoday.com,health.com,everydayhealth.com,prevention.com,mindbodygreen.com,wellandgood.com"
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(news_url, params=params)
+            data = response.json()
+        
+        if data.get("status") != "ok":
+            return {
+                "articles": [],
+                "error": data.get("message", "News API error"),
+                "message": "Failed to fetch news",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        articles = []
+        for item in data.get("articles", []):
+            articles.append({
+                "title": item.get("title", ""),
+                "description": item.get("description", ""),
+                "source": item.get("source", {}).get("name", ""),
+                "author": item.get("author", ""),
+                "url": item.get("url", ""),
+                "image": item.get("urlToImage", ""),
+                "published": item.get("publishedAt", ""),
+            })
+        
+        # Extract trending topics from headlines
+        news_keywords = {}
+        health_terms = [
+            "weight", "diet", "exercise", "sleep", "stress", "anxiety", "depression",
+            "heart", "cancer", "diabetes", "alzheimer", "longevity", "aging",
+            "vitamin", "supplement", "probiotic", "gut", "microbiome", "hormone",
+            "menopause", "fertility", "pregnancy", "skin", "hair", "mental health",
+            "wellness", "fitness", "nutrition", "protein", "fasting", "keto", "vegan"
+        ]
+        
+        for article in articles:
+            title_lower = (article["title"] + " " + (article["description"] or "")).lower()
+            for term in health_terms:
+                if term in title_lower:
+                    if term not in news_keywords:
+                        news_keywords[term] = {"count": 0, "headlines": []}
+                    news_keywords[term]["count"] += 1
+                    if len(news_keywords[term]["headlines"]) < 2:
+                        news_keywords[term]["headlines"].append(article["title"][:60])
+        
+        # Sort by count
+        trending_news_topics = sorted(
+            [{"topic": k, **v} for k, v in news_keywords.items()],
+            key=lambda x: x["count"],
+            reverse=True
+        )[:10]
+        
+        return {
+            "articles": articles,
+            "total_results": data.get("totalResults", 0),
+            "returned": len(articles),
+            "search_query": search_query,
+            "date_range": f"Last {days} days",
+            "trending_topics": trending_news_topics,
+            "source": "News API (newsapi.org)",
+            "sources_covered": "Healthline, WebMD, Medical News Today, Health.com, Prevention, Mind Body Green, Well+Good",
+            "region": "US & Global",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"News API error: {str(e)}")
+        return {
+            "articles": [],
+            "error": str(e),
+            "message": "News API temporarily unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @app.get("/api/trends/aggregate")
 async def get_aggregate_trends(timeframe: str = "week"):
     """
-    Get aggregated trends from all sources (Google Trends + YouTube + Reddit + PubMed) - US focused
+    Get aggregated trends from all sources (Google Trends + YouTube + Reddit + PubMed + News) - US focused
     """
     try:
         # Get Google Trends for top health topics
@@ -1425,15 +1540,30 @@ async def get_aggregate_trends(timeframe: str = "week"):
                 "source_icon": "🔬"
             })
         
+        # Get News trending topics
+        news_results = await get_health_news(days=7, max_results=10)
+        
+        # Add News trending topics
+        for news_topic in news_results.get('trending_topics', [])[:3]:
+            all_trends.append({
+                "topic": news_topic['topic'].title(),
+                "score": min(100, news_topic['count'] * 20),
+                "trend_direction": "rising",
+                "articles": news_topic['count'],
+                "source": "Health News",
+                "source_icon": "📰"
+            })
+        
         return {
             "trends": all_trends,
             "google_trends": google_results,
             "youtube_trends": youtube_results,
             "reddit_trends": reddit_results,
             "pubmed_trends": pubmed_results,
+            "news_trends": news_results,
             "timeframe": timeframe,
             "region": "US",
-            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS", "PubMed/NIH"],
+            "sources": ["Google Trends", "YouTube Data API", "Reddit RSS", "PubMed/NIH", "News API"],
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
@@ -1586,10 +1716,30 @@ async def get_trends_source_status():
         "region": "Global"
     })
     
+    # Check News API
+    news_api_key = os.getenv("NEWS_API_KEY", "")
+    if news_api_key:
+        sources_status.append({
+            "id": "newsapi",
+            "name": "News API",
+            "status": "online",
+            "icon": "📰",
+            "message": "Healthline, WebMD, Medical News Today & more",
+            "region": "US & Global"
+        })
+    else:
+        sources_status.append({
+            "id": "newsapi",
+            "name": "News API",
+            "status": "offline",
+            "icon": "📰",
+            "message": "NEWS_API_KEY not configured",
+            "region": "US & Global"
+        })
+    
     # Future sources (not yet implemented)
     future_sources = [
-        {"id": "newsapi", "name": "News API", "status": "planned", "icon": "📰", "message": "Coming soon - free key available"},
-        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Requires business API approval"},
+        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Business API - coming soon"},
     ]
     
     sources_status.extend(future_sources)

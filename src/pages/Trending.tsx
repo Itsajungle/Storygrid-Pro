@@ -138,6 +138,22 @@ interface ResearchTopic {
   articles: string[];
 }
 
+interface NewsArticle {
+  title: string;
+  description: string;
+  source: string;
+  author: string;
+  url: string;
+  image: string;
+  published: string;
+}
+
+interface NewsTopic {
+  topic: string;
+  count: number;
+  headlines: string[];
+}
+
 interface TrendDataPoint {
   date: string;
   value: number;
@@ -707,7 +723,7 @@ const Trending = () => {
   const [youtubeTrends, setYoutubeTrends] = useState<YouTubeTrend[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
   const [graphData, setGraphData] = useState<TrendDataPoint[]>([]);
-  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'pubmed' | 'sources'>('topics');
+  const [activeTab, setActiveTab] = useState<'topics' | 'youtube' | 'reddit' | 'pubmed' | 'news' | 'sources'>('topics');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [showSourceFilter, setShowSourceFilter] = useState(false);
   
@@ -738,6 +754,10 @@ const Trending = () => {
   const [pubmedArticles, setPubmedArticles] = useState<PubMedArticle[]>([]);
   const [researchTopics, setResearchTopics] = useState<ResearchTopic[]>([]);
   const [pubmedTotal, setPubmedTotal] = useState<number>(0);
+  
+  // News data
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [newsTopics, setNewsTopics] = useState<NewsTopic[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -822,6 +842,20 @@ const Trending = () => {
           setPubmedArticles(pubmedData.articles);
           setResearchTopics(pubmedData.trending_research || []);
           setPubmedTotal(pubmedData.total_found || 0);
+          setUsingRealData(true);
+        }
+      }
+      
+      // Fetch Health News
+      const newsResponse = await fetch(
+        `${MANAGEMENT_HUB_URL}/api/trends/news?days=7&max_results=20`
+      );
+      
+      if (newsResponse.ok) {
+        const newsData = await newsResponse.json();
+        if (newsData.articles && newsData.articles.length > 0) {
+          setNewsArticles(newsData.articles);
+          setNewsTopics(newsData.trending_topics || []);
           setUsingRealData(true);
         }
       }
@@ -1350,9 +1384,10 @@ const Trending = () => {
           width: 'fit-content'
         }}>
           {[
-            { key: 'topics', label: 'Trending Topics', icon: TrendingUp },
+            { key: 'topics', label: 'Trending', icon: TrendingUp },
             { key: 'youtube', label: 'YouTube', icon: Youtube },
             { key: 'reddit', label: 'Reddit', icon: MessageSquare },
+            { key: 'news', label: 'News', icon: Newspaper },
             { key: 'pubmed', label: 'Research', icon: BookOpen },
             { key: 'sources', label: 'Sources', icon: Database },
           ].map(({ key, label, icon: Icon }) => (
@@ -2085,6 +2120,222 @@ const Trending = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FF4500', fontSize: '13px', fontWeight: '600' }}>
                   <CheckCircle size={16} />
                   Real-time RSS feeds • No API key needed • Tracking r/longevity, r/Biohacking, r/Health, r/WomensHealth, r/nutrition
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'news' && (
+          <div>
+            <h2 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '20px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              📰 Health & Wellness News
+              {newsArticles.length > 0 && (
+                <span style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  background: '#10B981',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: '700'
+                }}>
+                  ● Live Data
+                </span>
+              )}
+            </h2>
+            
+            {/* Trending News Topics */}
+            {newsTopics.length > 0 && (
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(59, 130, 246, 0.2)'
+              }}>
+                <h3 style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  marginBottom: '16px',
+                  color: '#1F2937',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  🔥 What's Making Headlines (Last 7 Days)
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {newsTopics.map((topic, idx) => (
+                    <div
+                      key={topic.topic}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        background: idx === 0 ? 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)' :
+                                   idx < 3 ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)',
+                        color: idx === 0 ? 'white' : '#3B82F6',
+                        fontWeight: '700',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      <span>{topic.topic}</span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        background: idx === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(59, 130, 246, 0.1)',
+                        fontSize: '11px'
+                      }}>
+                        {topic.count} articles
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* News Articles */}
+            {newsArticles.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gap: '16px'
+              }}>
+                {newsArticles.map((article, idx) => (
+                  <a
+                    key={idx}
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '14px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(59, 130, 246, 0.15)',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
+                      display: 'block'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-3px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    {article.image && (
+                      <div style={{
+                        width: '100%',
+                        height: '140px',
+                        overflow: 'hidden'
+                      }}>
+                        <img 
+                          src={article.image} 
+                          alt={article.title}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: '#3B82F6',
+                          color: 'white',
+                          fontSize: '11px',
+                          fontWeight: '700'
+                        }}>
+                          {article.source}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                          {new Date(article.published).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <h3 style={{
+                        fontFamily: "'Outfit', sans-serif",
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: '#1F2937',
+                        marginBottom: '8px',
+                        lineHeight: '1.4',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {article.title}
+                      </h3>
+                      
+                      {article.description && (
+                        <p style={{
+                          fontSize: '12px',
+                          color: '#6B7280',
+                          lineHeight: '1.5',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {article.description}
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px',
+                color: '#6B7280',
+                background: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '16px'
+              }}>
+                <Newspaper size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                <p style={{ fontSize: '18px', fontWeight: '600' }}>Loading health news...</p>
+                <p>Fetching from Healthline, WebMD, Medical News Today & more</p>
+              </div>
+            )}
+
+            {/* News Info */}
+            {newsArticles.length > 0 && (
+              <div style={{
+                marginTop: '24px',
+                padding: '16px',
+                borderRadius: '12px',
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3B82F6', fontSize: '13px', fontWeight: '600' }}>
+                  <CheckCircle size={16} />
+                  News API • Healthline, WebMD, Medical News Today, Health.com, Mind Body Green, Well+Good
                 </div>
               </div>
             )}
