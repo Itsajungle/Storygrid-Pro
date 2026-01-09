@@ -685,17 +685,44 @@ const Trending = () => {
   const [loadingRealData, setLoadingRealData] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [usingRealData, setUsingRealData] = useState(false);
+  
+  // Source status
+  interface SourceStatus {
+    id: string;
+    name: string;
+    status: 'online' | 'offline' | 'error' | 'planned';
+    icon: string;
+    message: string;
+    region?: string;
+  }
+  const [sourceStatuses, setSourceStatuses] = useState<SourceStatus[]>([]);
+  const [statusSummary, setStatusSummary] = useState<{online: number; offline: number; planned: number}>({online: 0, offline: 0, planned: 0});
 
   useEffect(() => {
     setMounted(true);
     loadTrends();
     fetchRealTrends();
+    fetchSourceStatus();
   }, []);
 
   useEffect(() => {
     loadTrends();
     fetchRealTrends();
   }, [timeframe, selectedCategory, selectedSources]);
+
+  // Fetch source health status
+  const fetchSourceStatus = async () => {
+    try {
+      const response = await fetch(`${MANAGEMENT_HUB_URL}/api/trends/status`);
+      if (response.ok) {
+        const data = await response.json();
+        setSourceStatuses(data.sources || []);
+        setStatusSummary(data.summary || {online: 0, offline: 0, planned: 0});
+      }
+    } catch (error) {
+      console.error('Failed to fetch source status:', error);
+    }
+  };
 
   // Fetch real trends from Management Hub API
   const fetchRealTrends = async () => {
@@ -901,6 +928,11 @@ const Trending = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
         
         .animate-in {
@@ -1814,80 +1846,260 @@ const Trending = () => {
             }}>
               📊 Data Sources
             </h2>
-            <p style={{ color: '#6B7280', marginBottom: '24px', fontSize: '15px' }}>
+            <p style={{ color: '#6B7280', marginBottom: '16px', fontSize: '15px' }}>
               Trend analysis is aggregated from {dataSources.length} authoritative health and wellness sources
             </p>
             
+            {/* Live Status Summary */}
+            {sourceStatuses.length > 0 && (
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                marginBottom: '24px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)'
+                }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10B981' }} />
+                  <span style={{ fontWeight: '700', color: '#059669' }}>{statusSummary.online} Online</span>
+                </div>
+                {statusSummary.offline > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                  }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EF4444' }} />
+                    <span style={{ fontWeight: '700', color: '#DC2626' }}>{statusSummary.offline} Offline</span>
+                  </div>
+                )}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  background: 'rgba(107, 114, 128, 0.1)',
+                  border: '1px solid rgba(107, 114, 128, 0.3)'
+                }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#6B7280' }} />
+                  <span style={{ fontWeight: '700', color: '#4B5563' }}>{statusSummary.planned} Planned</span>
+                </div>
+                <button
+                  onClick={fetchSourceStatus}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(234, 88, 12, 0.3)',
+                    background: 'rgba(234, 88, 12, 0.05)',
+                    color: '#EA580C',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} />
+                  Refresh Status
+                </button>
+              </div>
+            )}
+
+            {/* Live API Sources */}
+            {sourceStatuses.length > 0 && (
+              <>
+                <h3 style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  marginBottom: '16px',
+                  color: '#1F2937'
+                }}>
+                  🔌 Live API Status
+                </h3>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '12px',
+                  marginBottom: '32px'
+                }}>
+                  {sourceStatuses.map((source, idx) => {
+                    const statusColors = {
+                      online: { bg: 'rgba(16, 185, 129, 0.1)', border: '#10B981', text: '#059669' },
+                      offline: { bg: 'rgba(239, 68, 68, 0.1)', border: '#EF4444', text: '#DC2626' },
+                      error: { bg: 'rgba(245, 158, 11, 0.1)', border: '#F59E0B', text: '#D97706' },
+                      planned: { bg: 'rgba(107, 114, 128, 0.1)', border: '#6B7280', text: '#4B5563' }
+                    };
+                    const colors = statusColors[source.status] || statusColors.planned;
+                    
+                    return (
+                      <div
+                        key={source.id}
+                        className={mounted ? 'animate-in' : ''}
+                        style={{
+                          animationDelay: `${idx * 50}ms`,
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          border: `2px solid ${colors.border}30`,
+                          borderLeft: `4px solid ${colors.border}`
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '24px' }}>{source.icon}</span>
+                            <div>
+                              <h4 style={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontSize: '14px',
+                                fontWeight: '700',
+                                color: '#1F2937',
+                                margin: 0
+                              }}>
+                                {source.name}
+                              </h4>
+                              <p style={{ fontSize: '11px', color: '#6B7280', margin: '2px 0 0 0' }}>
+                                {source.message}
+                              </p>
+                            </div>
+                          </div>
+                          <span style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            background: colors.bg,
+                            color: colors.text,
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase'
+                          }}>
+                            <div style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: colors.border,
+                              animation: source.status === 'online' ? 'pulse 2s infinite' : 'none'
+                            }} />
+                            {source.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            
+            <h3 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '16px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              color: '#1F2937'
+            }}>
+              📚 All Tracked Sources
+            </h3>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: '16px'
             }}>
-              {dataSources.map((source, idx) => (
-                <div
-                  key={source.id}
-                  className={mounted ? 'animate-in' : ''}
-                  style={{
-                    animationDelay: `${idx * 50}ms`,
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    border: `2px solid ${source.color}30`,
-                    borderLeft: `4px solid ${source.color}`
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '28px' }}>{source.icon}</span>
-                    <div>
-                      <h3 style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: '16px',
-                        fontWeight: '700',
-                        color: '#1F2937',
-                        marginBottom: '2px'
-                      }}>
-                        {source.name}
-                      </h3>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        background: `${source.color}15`,
-                        color: source.color,
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        textTransform: 'capitalize'
-                      }}>
-                        {source.type}
-                      </span>
+              {dataSources.map((source, idx) => {
+                // Find live status for this source
+                const liveStatus = sourceStatuses.find(s => s.id === source.id);
+                
+                return (
+                  <div
+                    key={source.id}
+                    className={mounted ? 'animate-in' : ''}
+                    style={{
+                      animationDelay: `${idx * 50}ms`,
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      padding: '20px',
+                      border: `2px solid ${source.color}30`,
+                      borderLeft: `4px solid ${source.color}`
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '28px' }}>{source.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h3 style={{
+                            fontFamily: "'Outfit', sans-serif",
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            color: '#1F2937',
+                            marginBottom: '2px'
+                          }}>
+                            {source.name}
+                          </h3>
+                          {liveStatus && (
+                            <span style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: liveStatus.status === 'online' ? '#10B981' : 
+                                         liveStatus.status === 'offline' ? '#EF4444' : '#6B7280'
+                            }} />
+                          )}
+                        </div>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: `${source.color}15`,
+                          color: source.color,
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          textTransform: 'capitalize'
+                        }}>
+                          {source.type}
+                        </span>
+                      </div>
                     </div>
+                    
+                    <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '12px' }}>
+                      {source.description}
+                    </p>
+                    
+                    {source.url && (
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                          color: source.color,
+                          fontWeight: '600',
+                          textDecoration: 'none'
+                        }}
+                      >
+                        <ExternalLink size={14} />
+                        Visit Source
+                      </a>
+                    )}
                   </div>
-                  
-                  <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '12px' }}>
-                    {source.description}
-                  </p>
-                  
-                  {source.url && (
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        color: source.color,
-                        fontWeight: '600',
-                        textDecoration: 'none'
-                      }}
-                    >
-                      <ExternalLink size={14} />
-                      Visit Source
-                    </a>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Future Sources Note */}
@@ -1913,7 +2125,6 @@ const Trending = () => {
                   'Amazon Health Bestsellers',
                   'Mind Body Green',
                   'Well+Good',
-                  'NHS UK Trends',
                   'Google Scholar',
                   'Instagram Health Tags'
                 ].map(source => (

@@ -1164,6 +1164,119 @@ async def get_tracked_topics():
         "region": "US"
     }
 
+@app.get("/api/trends/status")
+async def get_trends_source_status():
+    """
+    Check the health status of all trend data sources
+    Returns online/offline status for each API
+    """
+    import importlib
+    
+    sources_status = []
+    
+    # Check Google Trends (pytrends)
+    try:
+        pytrends_spec = importlib.util.find_spec("pytrends")
+        if pytrends_spec is not None:
+            from pytrends.request import TrendReq
+            pytrends = TrendReq(hl='en-US', tz=300, timeout=(10,25))
+            # Quick test - just initialize, don't make request
+            sources_status.append({
+                "id": "google_trends",
+                "name": "Google Trends",
+                "status": "online",
+                "icon": "📊",
+                "message": "pytrends library available",
+                "region": "US"
+            })
+        else:
+            sources_status.append({
+                "id": "google_trends",
+                "name": "Google Trends",
+                "status": "offline",
+                "icon": "📊",
+                "message": "pytrends library not installed",
+                "region": "US"
+            })
+    except Exception as e:
+        sources_status.append({
+            "id": "google_trends",
+            "name": "Google Trends",
+            "status": "error",
+            "icon": "📊",
+            "message": str(e),
+            "region": "US"
+        })
+    
+    # Check YouTube Data API
+    try:
+        googleapi_spec = importlib.util.find_spec("googleapiclient")
+        api_key = os.getenv("YOUTUBE_API_KEY", "")
+        
+        if googleapi_spec is None:
+            sources_status.append({
+                "id": "youtube",
+                "name": "YouTube Data API",
+                "status": "offline",
+                "icon": "📺",
+                "message": "google-api-python-client library not installed",
+                "region": "US"
+            })
+        elif not api_key:
+            sources_status.append({
+                "id": "youtube",
+                "name": "YouTube Data API",
+                "status": "offline",
+                "icon": "📺",
+                "message": "YOUTUBE_API_KEY not configured",
+                "region": "US"
+            })
+        else:
+            sources_status.append({
+                "id": "youtube",
+                "name": "YouTube Data API",
+                "status": "online",
+                "icon": "📺",
+                "message": "API key configured and library available",
+                "region": "US"
+            })
+    except Exception as e:
+        sources_status.append({
+            "id": "youtube",
+            "name": "YouTube Data API",
+            "status": "error",
+            "icon": "📺",
+            "message": str(e),
+            "region": "US"
+        })
+    
+    # Future sources (not yet implemented)
+    future_sources = [
+        {"id": "reddit", "name": "Reddit API", "status": "planned", "icon": "🔴", "message": "Coming soon"},
+        {"id": "pubmed", "name": "PubMed/NIH", "status": "planned", "icon": "🔬", "message": "Coming soon"},
+        {"id": "newsapi", "name": "News API", "status": "planned", "icon": "📰", "message": "Coming soon"},
+        {"id": "tiktok", "name": "TikTok", "status": "planned", "icon": "🎵", "message": "Coming soon - requires business API"},
+    ]
+    
+    sources_status.extend(future_sources)
+    
+    # Calculate summary
+    online_count = sum(1 for s in sources_status if s['status'] == 'online')
+    offline_count = sum(1 for s in sources_status if s['status'] == 'offline')
+    planned_count = sum(1 for s in sources_status if s['status'] == 'planned')
+    
+    return {
+        "sources": sources_status,
+        "summary": {
+            "online": online_count,
+            "offline": offline_count,
+            "planned": planned_count,
+            "total": len(sources_status)
+        },
+        "region": "US",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 # Run the application
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
